@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getRemisiones, getEstadisticasRemisiones } from '@/lib/db/remisiones'
-import { formatCOP, formatFecha , cardCls } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls, todayLocalISODate } from '@/utils/cn'
 import { Badge } from '@/components/ui/badge'
 import { Truck, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -29,7 +29,7 @@ const TABS = [
 
 export default async function RemisionesPage({ searchParams }: PageProps) {
   const sp     = await searchParams
-  const hoy    = new Date().toISOString().split('T')[0]
+  const hoy    = todayLocalISODate()
   const anio   = new Date().getFullYear()
   const desde  = sp.desde  || `${anio}-01-01`
   const hasta  = sp.hasta  || hoy

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { formatCOP } from '@/utils/cn'
+import { formatCOP, todayLocalISODate } from '@/utils/cn'
 
 interface FormaPago { id: string; descripcion: string }
 
@@ -15,7 +15,7 @@ interface Props {
   onCancel:     () => void
 }
 
-const hoy = () => new Date().toISOString().slice(0, 10)
+const hoy = () => todayLocalISODate()
 
 export function FormRecibo({ documentoId, totalFactura, totalPagado, formasPago, onDone, onCancel }: Props) {
   const pendiente = totalFactura - totalPagado

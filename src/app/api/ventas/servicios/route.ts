@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { toErrorMsg } from '@/lib/utils/errors'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { todayLocalISODate } from '@/utils/cn'
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
         servicio,
         direccion: direccion || null,
         prioridad,
-        fecha_inicio: fecha_inicio || new Date().toISOString().split('T')[0],
+        fecha_inicio: fecha_inicio || todayLocalISODate(),
         fecha_promesa: fecha_promesa || null,
         estado: 'recibida',
         observaciones: observaciones || null,

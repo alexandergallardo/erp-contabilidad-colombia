@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { getRecibos } from '@/lib/db/ventas'
 import { getSession } from '@/lib/auth/session'
-import { formatCOP, formatFecha , cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { Receipt } from 'lucide-react'
 import Link from 'next/link'
 
@@ -12,7 +12,7 @@ interface PageProps {
 
 export default async function RecibosPage({ searchParams }: PageProps) {
   const sp   = await searchParams
-  const hoy  = new Date().toISOString().split('T')[0]
+  const hoy  = todayLocalISODate()
   const anio = new Date().getFullYear()
   const busqueda = sp.q ?? ''
   const desde = sp.desde || `${anio}-01-01`

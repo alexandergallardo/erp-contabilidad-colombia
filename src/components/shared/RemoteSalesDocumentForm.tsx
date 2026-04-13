@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RemoteLookup } from '@/components/ui/remote-lookup'
-import { formatCOP, cardCls } from '@/utils/cn'
+import { formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import type { Bodega, Impuesto } from '@/types'
 import { AlertCircle, Plus, Trash2 } from 'lucide-react'
 
@@ -98,7 +98,7 @@ export function RemoteSalesDocumentForm({
 }: Props) {
   const router = useRouter()
   const themeStyles = THEME_STYLES[theme]
-  const hoy = new Date().toISOString().slice(0, 10)
+  const hoy = todayLocalISODate()
 
   const [clienteId, setClienteId] = useState('')
   const [clienteLabel, setClienteLabel] = useState('')

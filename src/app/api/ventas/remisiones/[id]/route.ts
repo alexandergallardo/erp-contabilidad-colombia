@@ -5,6 +5,7 @@ import { createFactura } from '@/lib/db/ventas'
 import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
 import { revalidateInventoryDependentViews } from '@/lib/cache/revalidate-inventory'
+import { todayLocalISODate } from '@/utils/cn'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -64,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
       const cliente = (rem as { cliente?: { id?: string } | null }).cliente ?? null
       const bodega = (rem as { bodega?: { id?: string } | null }).bodega ?? null
-      const hoy = new Date().toISOString().split('T')[0]
+      const hoy = todayLocalISODate()
 
       const facturaId = await createFactura({
         empresa_id,

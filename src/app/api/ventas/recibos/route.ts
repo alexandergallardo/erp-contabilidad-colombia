@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 import { getRecibos, createRecibo } from '@/lib/db/ventas'
 import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       documento_id,
       forma_pago_id,
       valor:         Number(valor),
-      fecha:         fecha || new Date().toISOString().slice(0, 10),
+      fecha:         fecha || todayLocalISODate(),
       observaciones: observaciones || null,
     })
 

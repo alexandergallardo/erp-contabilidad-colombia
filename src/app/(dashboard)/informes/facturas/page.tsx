@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getInformeFacturas } from '@/lib/db/informes'
 import { getClienteById } from '@/lib/db/clientes'
 import { FiltrosInformeFacturas } from '@/components/informes/FiltrosInformeFacturas'
-import { formatCOP, formatFecha , cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { FileText } from 'lucide-react'
 import Link from 'next/link'
 
@@ -20,7 +20,7 @@ const BADGE: Record<string, string> = {
 
 export default async function InformeFacturasPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const hoy   = new Date().toISOString().split('T')[0]
+  const hoy   = todayLocalISODate()
   const anio  = new Date().getFullYear()
   const desde = sp.desde || `${anio}-01-01`
   const hasta  = sp.hasta  || hoy

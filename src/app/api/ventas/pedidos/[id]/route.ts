@@ -6,6 +6,7 @@ import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { revalidateInventoryDependentViews } from '@/lib/cache/revalidate-inventory'
+import { todayLocalISODate } from '@/utils/cn'
 
 interface Ctx { params: Promise<{ id: string }> }
 
@@ -56,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
         return NextResponse.json({ error: 'No hay ejercicio activo' }, { status: 400 })
       }
       const bodega = pedido.bodega as { id?: string } | null
-      const hoy = new Date().toISOString().split('T')[0]
+      const hoy = todayLocalISODate()
 
       const facturaId = await createFactura({
         empresa_id,

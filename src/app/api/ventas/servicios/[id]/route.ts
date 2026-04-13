@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { toErrorMsg } from '@/lib/utils/errors'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { todayLocalISODate } from '@/utils/cn'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -37,7 +38,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
     // Auto-set fecha_cierre when entregado
     if (body.estado === 'entregado' && !body.fecha_cierre) {
-      updates.fecha_cierre = new Date().toISOString().split('T')[0]
+      updates.fecha_cierre = todayLocalISODate()
     }
 
     const { error } = await supabase.from('servicios_tecnicos').update(updates).eq('id', id)

@@ -4,6 +4,7 @@ import { getEjercicioActivo } from '@/lib/db/maestros'
 import { ACCOUNTING_ROLES } from '@/lib/auth/permissions'
 import { getSession } from '@/lib/auth/session'
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient()
     const { searchParams } = new URL(req.url)
     const desde  = searchParams.get('desde') ?? `${new Date().getFullYear()}-01-01`
-    const hasta  = searchParams.get('hasta') ?? new Date().toISOString().split('T')[0]
+    const hasta  = searchParams.get('hasta') ?? todayLocalISODate()
     const limit  = parseInt(searchParams.get('limit') ?? '50')
     const offset = parseInt(searchParams.get('offset') ?? '0')
 

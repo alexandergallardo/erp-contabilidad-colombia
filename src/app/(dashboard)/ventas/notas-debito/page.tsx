@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getSession } from '@/lib/auth/session'
 import { ACCOUNTING_ROLES } from '@/lib/auth/permissions'
 import { createClient } from '@/lib/supabase/server'
-import { formatCOP, formatFecha , cardCls } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls, todayLocalISODate } from '@/utils/cn'
 import { TrendingUp, Plus } from 'lucide-react'
 import Link from 'next/link'
 
@@ -13,7 +13,7 @@ interface PageProps {
 
 export default async function NotasDebitoPage({ searchParams }: PageProps) {
   const sp    = await searchParams
-  const hoy   = new Date().toISOString().split('T')[0]
+  const hoy   = todayLocalISODate()
   const desde = sp.desde || `${new Date().getFullYear()}-01-01`
   const hasta = sp.hasta || hoy
   const session = await getSession()
