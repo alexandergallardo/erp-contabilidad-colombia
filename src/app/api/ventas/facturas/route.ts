@@ -4,6 +4,7 @@ import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
 import { revalidateInventoryDependentViews } from '@/lib/cache/revalidate-inventory'
+import { todayLocalISODate } from '@/utils/cn'
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       bodega_id,
       forma_pago_id,
       colaborador_id:   body.colaborador_id || null,
-      fecha:            body.fecha || new Date().toISOString().slice(0, 10),
+      fecha:            body.fecha || todayLocalISODate(),
       fecha_vencimiento: body.fecha_vencimiento || null,
       observaciones:    body.observaciones || null,
       lineas,

@@ -7,7 +7,7 @@ import { RemoteLookup } from '@/components/ui/remote-lookup'
 import { calcularFechaVencimientoFormaPago, isSistecreditoFormaPago } from '@/lib/utils/formas-pago'
 
 import type { Impuesto, Bodega } from '@/types'
-import { formatCOP, cardCls } from '@/utils/cn'
+import { formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import { Plus, Trash2, AlertCircle } from 'lucide-react'
 
 interface FormaPago { id: string; descripcion: string; tipo: string; dias_vencimiento: number }
@@ -61,7 +61,7 @@ interface Props {
   colaboradores: Colaborador[]
 }
 
-const hoy = new Date().toISOString().slice(0, 10)
+const hoy = todayLocalISODate()
 
 function formatClienteLabel(cliente: ClienteOption) {
   if (!cliente.numero_documento) return cliente.razon_social

@@ -17,12 +17,28 @@ export function formatCOP(value: number): string {
   }).format(value)
 }
 
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/
+
+export function parseFecha(fecha: string): Date {
+  return DATE_ONLY_REGEX.test(fecha)
+    ? new Date(`${fecha}T12:00:00Z`)
+    : new Date(fecha)
+}
+
 export function formatFecha(fecha: string): string {
   return new Intl.DateTimeFormat('es-CO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-  }).format(new Date(fecha))
+  }).format(parseFecha(fecha))
+}
+
+export function todayLocalISODate(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export function calcularTotal(
