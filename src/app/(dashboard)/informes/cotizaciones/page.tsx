@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getCotizaciones, getResumenCotizaciones } from '@/lib/db/cotizaciones'
-import { formatCOP, formatFecha } from '@/utils/cn'
+import { formatCOP, formatFecha, todayLocalISODate } from '@/utils/cn'
 import { FileText } from 'lucide-react'
 import Link from 'next/link'
 
@@ -19,7 +19,7 @@ const BADGE: Record<string, string> = {
 export default async function InformeCotizacionesPage({ searchParams }: PageProps) {
   const PAGE_SIZE = 100
   const sp    = await searchParams
-  const hoy   = new Date().toISOString().split('T')[0]
+  const hoy   = todayLocalISODate()
   const anio  = new Date().getFullYear()
   const desde = sp.desde || `${anio}-01-01`
   const hasta  = sp.hasta  || hoy

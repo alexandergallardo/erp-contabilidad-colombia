@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
-import { formatCOP, formatFecha, cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha, cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import Link from 'next/link'
 import { ShoppingCart, Truck, Warehouse, CheckCircle, CreditCard, Printer } from 'lucide-react'
 import { DocumentoSoporteCard } from './DocumentoSoporteCard'
@@ -94,7 +94,7 @@ export function DetalleCompra({
   // Estado del form de pago
   const [fpId,   setFpId]   = useState(formasPago[0]?.id ?? '')
   const [valor,  setValor]  = useState(0)
-  const [fecha,  setFecha]  = useState(new Date().toISOString().split('T')[0])
+  const [fecha,  setFecha]  = useState(todayLocalISODate())
   const [obs,    setObs]    = useState('')
   const [pagando, setPagando] = useState(false)
   const [errPago, setErrPago] = useState('')

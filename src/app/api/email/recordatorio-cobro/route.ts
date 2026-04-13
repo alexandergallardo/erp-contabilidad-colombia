@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 import { createClient } from '@/lib/supabase/server'
 import { getEmpresaId } from '@/lib/db/maestros'
 import { getResend, emailFrom, htmlRecordatorioCobro } from '@/lib/email'
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'El cliente no tiene email registrado' }, { status: 400 })
     }
 
-    const hoy = new Date().toISOString().slice(0, 10)
+    const hoy = todayLocalISODate()
 
     // Facturas vencidas
     const { data: facturas } = await supabase

@@ -1,4 +1,5 @@
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 import { NextRequest, NextResponse } from 'next/server'
 import { getCompraById, cancelarCompra, pagarCompra } from '@/lib/db/compras'
 import { getEmpresaId, getEjercicioActivo } from '@/lib/db/maestros'
@@ -45,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
         forma_pago_id,
         ejercicio_id:  ejercicio.id,
         valor:         Number(valor),
-        fecha:         fecha ?? new Date().toISOString().split('T')[0],
+        fecha:         fecha ?? todayLocalISODate(),
         observaciones,
         retenciones: Array.isArray(body.retenciones) ? body.retenciones : [],
       })

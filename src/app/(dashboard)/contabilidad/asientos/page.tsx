@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getAsientos } from '@/lib/db/contabilidad'
-import { formatCOP, formatFecha , cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { BookOpen, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { RevertirAsientoButton } from '@/components/contabilidad/RevertirAsientoButton'
@@ -23,7 +23,7 @@ interface PageProps {
 
 export default async function AsientosPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const hoy  = new Date().toISOString().split('T')[0]
+  const hoy  = todayLocalISODate()
   const anio = new Date().getFullYear()
   const desde    = sp.desde    || `${anio}-01-01`
   const hasta    = sp.hasta    || hoy

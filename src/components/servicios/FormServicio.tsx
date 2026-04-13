@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RemoteLookup } from '@/components/ui/remote-lookup'
 import { AlertCircle } from 'lucide-react'
+import { addDaysLocalISODate, todayLocalISODate } from '@/utils/cn'
 
 interface ClienteOption {
   id: string
@@ -12,8 +13,8 @@ interface ClienteOption {
   numero_documento?: string | null
 }
 
-const hoy = new Date().toISOString().slice(0, 10)
-const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+const hoy = todayLocalISODate()
+const en7 = addDaysLocalISODate(7)
 
 export function FormServicio() {
   const router = useRouter()

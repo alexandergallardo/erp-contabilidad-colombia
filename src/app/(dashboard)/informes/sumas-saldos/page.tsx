@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getSumasYSaldos } from '@/lib/db/informes'
-import { formatCOP , cardCls , cn } from '@/utils/cn'
+import { formatCOP , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { Scale, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -20,7 +20,7 @@ const TIPO_COLOR: Record<string, string> = {
 
 export default async function SumasYSaldosPage({ searchParams }: PageProps) {
   const sp    = await searchParams
-  const hoy   = new Date().toISOString().split('T')[0]
+  const hoy   = todayLocalISODate()
   const desde = sp.desde || `${new Date().getFullYear()}-01-01`
   const hasta  = sp.hasta  || hoy
 

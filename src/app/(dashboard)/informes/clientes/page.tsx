@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getInformeClientes } from '@/lib/db/informes'
-import { formatCOP , cardCls , cn } from '@/utils/cn'
+import { formatCOP , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { Users } from 'lucide-react'
 import Link from 'next/link'
 
@@ -11,7 +11,7 @@ interface PageProps {
 
 export default async function InformeClientesPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const hoy  = new Date().toISOString().split('T')[0]
+  const hoy  = todayLocalISODate()
   const anio = new Date().getFullYear()
   const desde = sp.desde || `${anio}-01-01`
   const hasta  = sp.hasta  || hoy

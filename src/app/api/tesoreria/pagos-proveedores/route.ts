@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 import { getSession } from '@/lib/auth/session'
 import { ensurePeriodoAbierto } from '@/lib/db/compliance'
 import { getEmpresaId, getEjercicioActivo } from '@/lib/db/maestros'
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     const { documento_id, forma_pago_id, monto_total, observaciones } = body
-    const fecha = typeof body?.fecha === 'string' && body.fecha ? body.fecha : new Date().toISOString().split('T')[0]
+    const fecha = typeof body?.fecha === 'string' && body.fecha ? body.fecha : todayLocalISODate()
     if (!documento_id || !forma_pago_id || !monto_total) {
       return NextResponse.json({ error: 'documento_id, forma_pago_id y monto_total son requeridos' }, { status: 400 })
     }

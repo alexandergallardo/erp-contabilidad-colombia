@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/modal'
 import { RetencionesSelector } from '@/components/contabilidad/RetencionesSelector'
 import type { RetencionActiva } from '@/lib/db/retenciones'
 import type { RetencionSelection } from '@/lib/accounting/retenciones'
-import { cardCls, formatCOP, formatFecha } from '@/utils/cn'
+import { cardCls, formatCOP, formatFecha, todayLocalISODate } from '@/utils/cn'
 import { FileText, Plus, Search } from 'lucide-react'
 
 interface FormaPago {
@@ -81,7 +81,7 @@ export function PagosProveedores({
     documento_id: '',
     forma_pago_id: formasPago[0]?.id ?? '',
     monto_total: '',
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: todayLocalISODate(),
     observaciones: '',
   })
 
@@ -114,7 +114,7 @@ export function PagosProveedores({
       documento_id: '',
       forma_pago_id: formasPago[0]?.id ?? '',
       monto_total: '',
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: todayLocalISODate(),
       observaciones: '',
     })
     setBusqueda('')

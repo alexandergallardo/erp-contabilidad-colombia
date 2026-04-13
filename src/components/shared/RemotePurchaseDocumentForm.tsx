@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RemoteLookup } from '@/components/ui/remote-lookup'
-import { formatCOP, cardCls } from '@/utils/cn'
+import { addDaysLocalISODate, formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import type { Bodega, Impuesto } from '@/types'
 import { AlertCircle, Plus, Trash2 } from 'lucide-react'
 
@@ -79,8 +79,8 @@ export function RemotePurchaseDocumentForm({
 }: Props) {
   const router = useRouter()
   const themeStyles = THEME_STYLES.orange
-  const hoy = new Date().toISOString().slice(0, 10)
-  const en15 = new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10)
+  const hoy = todayLocalISODate()
+  const en15 = addDaysLocalISODate(15)
 
   const [proveedorId, setProveedorId] = useState('')
   const [proveedorLabel, setProveedorLabel] = useState('')

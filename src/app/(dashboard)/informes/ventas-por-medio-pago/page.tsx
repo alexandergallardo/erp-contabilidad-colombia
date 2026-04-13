@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { CreditCard, TrendingUp } from 'lucide-react'
 import { getInformeVentasPorMedioPago } from '@/lib/db/informes'
 import { getFormasPago } from '@/lib/db/maestros'
-import { formatCOP, formatFecha } from '@/utils/cn'
+import { formatCOP, formatFecha, todayLocalISODate } from '@/utils/cn'
 
 interface PageProps {
   searchParams: Promise<{ desde?: string; hasta?: string; forma_pago_id?: string }>
@@ -12,7 +12,7 @@ interface PageProps {
 
 export default async function InformeVentasPorMedioPagoPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = todayLocalISODate()
   const inicioMes = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
   const desde = sp.desde || inicioMes
   const hasta = sp.hasta || hoy

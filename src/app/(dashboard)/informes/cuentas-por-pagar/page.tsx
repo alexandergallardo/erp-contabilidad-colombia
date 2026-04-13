@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { getEmpresaId } from '@/lib/db/maestros'
-import { formatCOP, formatFecha , cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls , cn, parseFecha } from '@/utils/cn'
 import Link from 'next/link'
 import { ChevronLeft, AlertTriangle } from 'lucide-react'
 
@@ -25,7 +25,7 @@ async function getCuentasPorPagar() {
   return (data ?? []).map((doc: any) => {
     const pagado = (doc.recibos ?? []).reduce((s: number, r: any) => s + (r.valor ?? 0), 0)
     const saldo = doc.total - pagado
-    const vencimiento = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null
+    const vencimiento = doc.fecha_vencimiento ? parseFecha(doc.fecha_vencimiento) : null
     const diasVencido = vencimiento ? Math.floor((hoy.getTime() - vencimiento.getTime()) / 86400000) : null
     let rango: string = 'vigente'
     if (diasVencido !== null && diasVencido > 0) {

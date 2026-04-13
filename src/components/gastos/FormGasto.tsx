@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { formatCOP, cardCls } from '@/utils/cn'
+import { formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import { RetencionesSelector } from '@/components/contabilidad/RetencionesSelector'
 import type { RetencionActiva } from '@/lib/db/retenciones'
 import type { RetencionSelection } from '@/lib/accounting/retenciones'
@@ -28,7 +28,7 @@ export function FormGasto({ acreedores, tiposGasto, formasPago, retenciones = []
   const [acreedor_id,    setAcreedorId]   = useState('')
   const [descripcion,    setDescripcion]  = useState('')
   const [valor,          setValor]        = useState(0)
-  const [fecha,          setFecha]        = useState(new Date().toISOString().split('T')[0])
+  const [fecha,          setFecha]        = useState(todayLocalISODate())
   const [observaciones,  setObservaciones] = useState('')
   const [enviando,       setEnviando]     = useState(false)
   const [error,          setError]        = useState('')

@@ -1,4 +1,5 @@
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
+import { todayLocalISODate } from '@/utils/cn'
 import { NextRequest, NextResponse } from 'next/server'
 import { getGastos, createGasto } from '@/lib/db/gastos'
 import { getEmpresaId, getEjercicioActivo } from '@/lib/db/maestros'
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
       empresa_id, ejercicio_id: ejercicio.id,
       acreedor_id: body.acreedor_id || undefined,
       tipo_gasto_id, forma_pago_id,
-      fecha:       body.fecha ?? new Date().toISOString().split('T')[0],
+      fecha:       body.fecha ?? todayLocalISODate(),
       descripcion, valor: Number(valor),
       observaciones: body.observaciones,
       retenciones: Array.isArray(body.retenciones) ? body.retenciones : [],

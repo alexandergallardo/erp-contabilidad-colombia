@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Search, FileText } from 'lucide-react'
-import { cardCls } from '@/utils/cn'
+import { cardCls, parseFecha } from '@/utils/cn'
 
 interface Bodega {
   id: string
@@ -279,7 +279,7 @@ export function KardexProducto({ bodegas, productos }: Props) {
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                          }).format(new Date(mov.fecha))}
+                          }).format(parseFecha(mov.fecha))}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-gray-700 dark:text-gray-300">
                           {tipoLabel}

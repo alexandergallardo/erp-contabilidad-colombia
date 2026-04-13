@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
-import { cardCls } from '@/utils/cn'
+import { cardCls, todayLocalISODate } from '@/utils/cn'
 
 type CuentaPUCOption = {
   id: string
@@ -42,7 +42,7 @@ const LINEA_VACIA: Linea = {
 
 export function FormAsientoManual({ cuentas, initial }: Props) {
   const router = useRouter()
-  const [fecha, setFecha] = useState(initial?.fecha ?? new Date().toISOString().split('T')[0])
+  const [fecha, setFecha] = useState(initial?.fecha ?? todayLocalISODate())
   const [concepto, setConcepto] = useState(initial?.concepto ?? '')
   const [lineas, setLineas] = useState<Linea[]>(
     initial?.lineas?.length ? initial.lineas : [{ ...LINEA_VACIA }, { ...LINEA_VACIA }]

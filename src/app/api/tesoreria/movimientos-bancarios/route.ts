@@ -3,6 +3,7 @@ import { toErrorMsg } from '@/lib/utils/errors'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { ensurePeriodoAbierto } from '@/lib/db/compliance'
+import { todayLocalISODate } from '@/utils/cn'
 
 const ROLES = ['admin', 'contador']
 
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (!cuenta_bancaria_id || !tipo || !concepto || !monto)
       return NextResponse.json({ error: 'Campos requeridos: cuenta, tipo, concepto, monto' }, { status: 400 })
 
-    const fecha = typeof body?.fecha === 'string' && body.fecha ? body.fecha : new Date().toISOString().split('T')[0]
+    const fecha = typeof body?.fecha === 'string' && body.fecha ? body.fecha : todayLocalISODate()
     await ensurePeriodoAbierto({
       session,
       fecha,

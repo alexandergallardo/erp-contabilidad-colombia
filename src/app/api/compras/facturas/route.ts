@@ -4,6 +4,7 @@ import { getCompras, createCompra } from '@/lib/db/compras'
 import { getEmpresaId, getEjercicioActivo } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
 import { revalidateInventoryDependentViews } from '@/lib/cache/revalidate-inventory'
+import { todayLocalISODate } from '@/utils/cn'
 
 function getErrorStatus(error: unknown) {
   if (typeof error === 'object' && error !== null && 'code' in error) {
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       ejercicio_id: ejercicio.id,
       proveedor_id,
       bodega_id,
-      fecha: fecha ?? new Date().toISOString().split('T')[0],
+      fecha: fecha ?? todayLocalISODate(),
       numero_externo,
       observaciones: body.observaciones,
       lineas,

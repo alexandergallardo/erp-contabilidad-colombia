@@ -3,6 +3,7 @@ import { toErrorMsg } from '@/lib/utils/errors'
 import { getOrdenesCompra, createOrdenCompra } from '@/lib/db/cotizaciones'
 import { getEjercicioActivo } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
+import { todayLocalISODate } from '@/utils/cn'
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (!ejercicio?.id) {
       return NextResponse.json({ error: 'No hay ejercicio activo' }, { status: 400 })
     }
-    const hoy = new Date().toISOString().split('T')[0]
+    const hoy = todayLocalISODate()
     const id = await createOrdenCompra({
       ejercicio_id: ejercicio.id,
       proveedor_id, bodega_id,

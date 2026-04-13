@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { getLibroMayor } from '@/lib/db/informes'
 import { createClient } from '@/lib/supabase/server'
-import { formatCOP, formatFecha , cardCls , cn } from '@/utils/cn'
+import { formatCOP, formatFecha , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { BookOpen } from 'lucide-react'
 
 interface PageProps {
@@ -11,7 +11,7 @@ interface PageProps {
 
 export default async function LibroMayorPage({ searchParams }: PageProps) {
   const sp        = await searchParams
-  const hoy       = new Date().toISOString().split('T')[0]
+  const hoy       = todayLocalISODate()
   const cuenta_id = sp.cuenta_id || ''
   const desde     = sp.desde || `${new Date().getFullYear()}-01-01`
   const hasta     = sp.hasta || hoy

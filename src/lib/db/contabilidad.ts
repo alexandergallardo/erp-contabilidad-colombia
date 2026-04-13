@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { cleanUUIDs } from '@/lib/utils/db'
+import { todayLocalISODate } from '@/utils/cn'
 
 async function getCurrentEmpresaId() {
   const supabase = await createClient()
@@ -567,7 +568,7 @@ export async function revertirAsiento(
       tipo: 'manual',
       tipo_doc,
       concepto,
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: todayLocalISODate(),
       importe: total,
     })
     .select('id, numero')

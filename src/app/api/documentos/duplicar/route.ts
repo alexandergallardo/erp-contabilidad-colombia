@@ -3,6 +3,7 @@ import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
 import { createClient } from '@/lib/supabase/server'
 import { getEmpresaId, getEjercicioActivo } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
+import { todayLocalISODate } from '@/utils/cn'
 
 // POST /api/documentos/duplicar { documento_id }
 // Crea una copia del documento con fecha hoy, estado 'pendiente' o 'borrador'
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     const num = (serie?.consecutivo_actual ?? 0) + 1
     const prefijo = serie?.prefijo ?? doc.prefijo ?? ''
-    const hoy = new Date().toISOString().slice(0, 10)
+    const hoy = todayLocalISODate()
     const estadoNuevo = doc.tipo === 'cotizacion' ? 'borrador' : 'pendiente'
 
     // Crear copia del documento

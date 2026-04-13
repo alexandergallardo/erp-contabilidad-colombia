@@ -1,5 +1,6 @@
 import { unzipSync } from 'fflate'
 import { XMLParser } from 'fast-xml-parser'
+import { todayLocalISODate } from '@/utils/cn'
 
 type ParsedNode = Record<string, unknown> | string | number | boolean | null | undefined
 
@@ -669,7 +670,7 @@ function parseFacturaPdfCabecera(pdfText: string, lineas: FacturaImportLineaBase
   }
   if (!fechaOriginal) {
     const dianDate = pdfText.match(/(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}-\d{2}:\d{2}\s+FECHA DIAN:/)
-    fechaOriginal = dianDate?.[1] ?? new Date().toISOString().slice(0, 10)
+    fechaOriginal = dianDate?.[1] ?? todayLocalISODate()
   }
 
   let nombreProveedor = ''
@@ -858,8 +859,8 @@ export function parseFacturaElectronica(
   return {
     cabecera: {
       numero_externo: numeroExterno,
-      fecha: fechaOriginal || new Date().toISOString().slice(0, 10),
-      fecha_original: fechaOriginal || new Date().toISOString().slice(0, 10),
+      fecha: fechaOriginal || todayLocalISODate(),
+      fecha_original: fechaOriginal || todayLocalISODate(),
       nit_proveedor: normalizeDigits(pickText(supplierTax?.CompanyID as ParsedNode, supplier?.PartyIdentification as ParsedNode)),
       nombre_proveedor: pickText(
         supplierLegal?.RegistrationName as ParsedNode,

@@ -41,6 +41,15 @@ export function todayLocalISODate(): string {
   return `${year}-${month}-${day}`
 }
 
+export function addDaysLocalISODate(days: number, base = new Date()): string {
+  const current = new Date(base)
+  current.setDate(current.getDate() + days)
+  const year = current.getFullYear()
+  const month = String(current.getMonth() + 1).padStart(2, '0')
+  const day = String(current.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function calcularTotal(
   cantidad: number,
   precioUnitario: number,

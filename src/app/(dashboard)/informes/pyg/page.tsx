@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getPyG } from '@/lib/db/informes'
-import { formatCOP , cardCls , cn } from '@/utils/cn'
+import { formatCOP , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { TrendingUp, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -57,7 +57,7 @@ function SeccionPyG({
 
 export default async function PyGPage({ searchParams }: PageProps) {
   const sp    = await searchParams
-  const hoy   = new Date().toISOString().split('T')[0]
+  const hoy   = todayLocalISODate()
   const desde = sp.desde || `${new Date().getFullYear()}-01-01`
   const hasta  = sp.hasta  || hoy
 

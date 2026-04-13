@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { getBalanceSituacion } from '@/lib/db/informes'
-import { formatCOP , cardCls , cn } from '@/utils/cn'
+import { formatCOP , cardCls , cn, todayLocalISODate } from '@/utils/cn'
 import { Landmark, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -49,7 +49,7 @@ function SeccionBalance({ titulo, cuentas, total, colorTotal }: {
 
 export default async function BalanceSituacionPage({ searchParams }: PageProps) {
   const sp          = await searchParams
-  const fecha_corte = sp.fecha || new Date().toISOString().split('T')[0]
+  const fecha_corte = sp.fecha || todayLocalISODate()
 
   const { activos, total_activos, pasivos, total_pasivos, patrimonio, total_patrimonio } =
     await getBalanceSituacion({ fecha_corte })

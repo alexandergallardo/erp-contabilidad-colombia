@@ -9,7 +9,7 @@ import type { BillingProductCode } from '@/lib/billing/types'
 import { FiltrosPagos, PaginacionPagos } from '@/components/superadmin/FiltrosPagos'
 import { Tabla, FilaTabla, CeldaTabla } from '@/components/ui/tabla'
 import { Badge } from '@/components/ui/badge'
-import { cardCls, formatCOP } from '@/utils/cn'
+import { cardCls, formatCOP, formatFecha } from '@/utils/cn'
 
 const LIMIT = 30
 
@@ -128,7 +128,7 @@ function PaymentRow({ payment: p, productNames }: { payment: FilteredPaymentRow;
   return (
     <FilaTabla>
       <CeldaTabla className="whitespace-nowrap text-xs">
-        {new Date(p.fecha).toLocaleDateString('es-CO')}
+        {formatFecha(p.fecha)}
       </CeldaTabla>
       <CeldaTabla className="max-w-[180px] truncate font-mono text-xs">
         {p.empresa_id}

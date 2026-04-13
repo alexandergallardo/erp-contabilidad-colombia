@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSession, type UserSession } from '@/lib/auth/session'
 import { calcularFechaPagoSistecredito, isSistecreditoFormaPago } from '@/lib/utils/formas-pago'
+import { todayLocalISODate } from '@/utils/cn'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -416,7 +417,7 @@ export async function getLibroMayor(params: { cuenta_id: string; desde: string; 
 export async function getInformeFacturas(params: {
   desde?: string; hasta?: string; estado?: string; cliente_id?: string
 }) {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = todayLocalISODate()
   const desde = params.desde || `${new Date().getFullYear()}-01-01`
   const hasta = params.hasta || hoy
   const estado = params.estado || ''
@@ -458,7 +459,7 @@ export async function getInformeFacturas(params: {
 // ── Ventas por Medio de Pago ────────────────────────────────────────────────
 
 export async function getInformeVentasPorMedioPago(params?: { desde?: string; hasta?: string; forma_pago_id?: string }) {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = todayLocalISODate()
   const inicioMes = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`
   const desde = params?.desde || inicioMes
   const hasta = params?.hasta || hoy
@@ -647,7 +648,7 @@ export async function getInformeCartera() {
 }
 
 export async function getInformeClientes(params?: { desde?: string; hasta?: string }) {
-  const hoy  = new Date().toISOString().split('T')[0]
+  const hoy  = todayLocalISODate()
   const desde = params?.desde || `${new Date().getFullYear()}-01-01`
   const hasta  = params?.hasta  || hoy
 
