@@ -3,6 +3,7 @@ import { getEjercicioActivo, getEmpresaId, getFormasPago } from '@/lib/db/maestr
 import { calcularFechaPagoSistecredito, isSistecreditoFormaPago } from '@/lib/utils/formas-pago'
 import { parseDocumentSearchTerm, sanitizeSearchTerm } from '@/lib/utils/search'
 import { assertDocumentoCancelacionPermitida } from '@/lib/db/documentos-contables'
+import { getTodayInAppTimeZone } from '@/lib/utils/dates'
 
 export interface FormaPagoRecaudoVenta {
   id: string
@@ -117,8 +118,8 @@ function formatMonthLabel(monthKey: string) {
 
 export async function getEstadisticasVentas() {
   const supabase = await createClient()
-  const hoy = new Date()
-  const inicioMes = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`
+  const hoy = getTodayInAppTimeZone()
+  const inicioMes = `${hoy.slice(0, 7)}-01`
 
   const [totRes, pendRes, pagRes, mesRes] = await Promise.all([
     supabase.from('documentos').select('total', { count: 'exact' }).eq('tipo', 'factura_venta').neq('estado', 'cancelada'),

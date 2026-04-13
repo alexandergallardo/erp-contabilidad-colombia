@@ -4,6 +4,7 @@ import type { Producto, Familia, Fabricante } from '@/types'
 import { cleanUUIDs } from '@/lib/utils/db'
 import { getEmpresaId } from '@/lib/db/maestros'
 import { hasLowStock, isLowStock } from '@/lib/utils/stock'
+import { formatDateInTimeZone } from '@/lib/utils/dates'
 
 type StockMetricRow = {
   cantidad?: number | null
@@ -46,7 +47,7 @@ export interface ProductoSinRotacion {
 }
 
 function formatISODate(date: Date) {
-  return date.toISOString().slice(0, 10)
+  return formatDateInTimeZone(date)
 }
 
 function startDateFromDays(days: number) {

@@ -3,6 +3,7 @@ import { cleanUUIDs } from '@/lib/utils/db'
 import { getEmpresaId } from '@/lib/db/maestros'
 import { sanitizeSearchTerm } from '@/lib/utils/search'
 import { assertDocumentoCancelacionPermitida } from '@/lib/db/documentos-contables'
+import { getTodayInAppTimeZone } from '@/lib/utils/dates'
 
 function isMissingRpcSignature(error: unknown) {
   if (!error || typeof error !== 'object') return false
@@ -226,8 +227,8 @@ export async function getEstadisticasCompras() {
     .from('documentos').select('total, estado, fecha').eq('tipo', 'factura_compra')
   if (error) throw error
 
-  const hoy = new Date()
-  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0]
+  const hoy = getTodayInAppTimeZone()
+  const primerDia = `${hoy.slice(0, 7)}-01`
 
   return {
     total: data.length,

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cleanUUIDs } from '@/lib/utils/db'
 import { getEmpresaId } from '@/lib/db/maestros'
 import { assertDocumentoCancelacionPermitida } from '@/lib/db/documentos-contables'
+import { getTodayInAppTimeZone } from '@/lib/utils/dates'
 
 function isMissingRpcSignature(error: unknown) {
   if (!error || typeof error !== 'object') return false
@@ -91,9 +92,11 @@ export async function getEstadisticasGastos() {
   const { data, error } = await supabase
     .from('documentos').select('total, fecha').eq('tipo', 'gasto')
   if (error) throw error
-  const hoy = new Date()
-  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0]
-  const primerMes = new Date(hoy.getFullYear(), 0, 1).toISOString().split('T')[0]
+  const hoy = getTodayInAppTimeZone()
+  const year = Number(hoy.slice(0, 4))
+  const month = hoy.slice(5, 7)
+  const primerDia = `${year}-${month}-01`
+  const primerMes = `${year}-01-01`
   return {
     total: data.length,
     total_monto: data.reduce((s, r) => s + (r.total ?? 0), 0),

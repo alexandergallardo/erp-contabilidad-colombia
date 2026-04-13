@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getProductosSinRotacion, getStockBajo } from '@/lib/db/productos'
 import { todayLocalISODate } from '@/utils/cn'
+import { getTodayInAppTimeZone } from '@/lib/utils/dates'
 
 export interface DashboardKPIs {
   facturado_anio: number
@@ -48,11 +49,11 @@ export interface DashboardTopCliente {
 }
 
 function mesActual() {
-  const hoy = new Date()
+  const hoy = getTodayInAppTimeZone()
   return {
-    inicio: new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0],
-    fin: hoy.toISOString().split('T')[0],
-    anio: hoy.getFullYear(),
+    inicio: `${hoy.slice(0, 7)}-01`,
+    fin: hoy,
+    anio: Number(hoy.slice(0, 4)),
   }
 }
 
