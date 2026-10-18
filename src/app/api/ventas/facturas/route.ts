@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getFacturas, createFactura } from '@/lib/db/ventas'
-import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
+import { getColaboradorIdForUsuario, getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
 import { getSession } from '@/lib/auth/session'
 import { getErrorStatus, toErrorMsg } from '@/lib/utils/errors'
 import { revalidateInventoryDependentViews } from '@/lib/cache/revalidate-inventory'
 import { todayLocalISODate } from '@/utils/cn'
+import { resolveFacturaColaboradorId } from '@/lib/billing/guardrails'
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,9 +35,19 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     const { cliente_id, bodega_id, forma_pago_id, lineas } = body
+    let colaborador_id = body.colaborador_id || null
 
     if (!cliente_id || !bodega_id || !forma_pago_id || !lineas?.length) {
       return NextResponse.json({ error: 'Campos requeridos: cliente, bodega, forma de pago, y al menos una línea' }, { status: 400 })
+    }
+
+    if (session.rol === 'vendedor') {
+      const matchedColaboradorId = await getColaboradorIdForUsuario(session.id, session.email, session.nombre)
+      colaborador_id = resolveFacturaColaboradorId({
+        rol: session.rol,
+        requestedColaboradorId: colaborador_id,
+        matchedColaboradorId,
+      })
     }
 
     const [empresa_id, ejercicio] = await Promise.all([
@@ -54,7 +65,7 @@ export async function POST(req: NextRequest) {
       cliente_id,
       bodega_id,
       forma_pago_id,
-      colaborador_id:   body.colaborador_id || null,
+      colaborador_id,
       fecha:            body.fecha || todayLocalISODate(),
       fecha_vencimiento: body.fecha_vencimiento || null,
       observaciones:    body.observaciones || null,

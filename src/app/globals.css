@@ -4,15 +4,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --app-bg: #f5f7fb;
+  --app-bg: #f4f7f5;
   --app-surface: #ffffff;
-  --app-surface-soft: #eef3fb;
-  --app-border: #d8e0ed;
-  --app-text: #1d2636;
-  --app-text-muted: #586379;
-  --app-accent: #139487;
-  --app-accent-strong: #0d766b;
-  --app-accent-soft: #d9f6f1;
+  --app-surface-soft: #edf3ef;
+  --app-border: #d8e2db;
+  --app-text: #14231b;
+  --app-text-muted: #5c6d63;
+  --app-accent: #00a77d;
+  --app-accent-strong: #007c5b;
+  --app-accent-soft: #d9f6e9;
   --app-accent-contrast: #f3fffc;
   --app-glow: rgba(19, 148, 135, 0.18);
   --app-shadow: 0 20px 60px rgba(20, 32, 54, 0.08);
@@ -25,12 +25,12 @@
 
 .dark {
   /* Base de modo oscuro pensada para menor fatiga visual */
-  --app-bg: #111721;
-  --app-surface: #171f2c;
-  --app-surface-soft: #1d2736;
-  --app-border: #2d3a4e;
-  --app-text: #d8e1ef;
-  --app-text-muted: #9aa8be;
+  --app-bg: #080f10;
+  --app-surface: #10191a;
+  --app-surface-soft: #192324;
+  --app-border: #2b3937;
+  --app-text: #e0e9e4;
+  --app-text-muted: #a2b4ab;
   --app-accent: #2fc7b5;
   --app-accent-strong: #66dbc9;
   --app-accent-soft: rgba(47, 199, 181, 0.12);
@@ -45,17 +45,17 @@
    * Ajuste global de grises de Tailwind en dark.
    * Esto suaviza automáticamente cientos de clases dark:* ya existentes.
    */
-  --color-gray-950: #101621;
-  --color-gray-900: #151d2a;
-  --color-gray-800: #1d2736;
-  --color-gray-700: #2a3649;
-  --color-gray-600: #3d4b62;
-  --color-gray-500: #61718a;
-  --color-gray-400: #92a3ba;
-  --color-gray-300: #b8c5d8;
-  --color-gray-200: #d4deeb;
-  --color-gray-100: #e9eff8;
-  --color-gray-50: #f4f7fc;
+  --color-gray-950: #080f10;
+  --color-gray-900: #10191a;
+  --color-gray-800: #192324;
+  --color-gray-700: #2b3937;
+  --color-gray-600: #42544d;
+  --color-gray-500: #72847a;
+  --color-gray-400: #a2b4ab;
+  --color-gray-300: #bacac0;
+  --color-gray-200: #dce6df;
+  --color-gray-100: #edf3ef;
+  --color-gray-50: #f7faf8;
 
   color-scheme: dark;
 }
@@ -71,10 +71,7 @@ body {
 
 body {
   font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 10%, transparent) 0, transparent 32%),
-    radial-gradient(circle at top right, rgba(78, 124, 255, 0.10) 0, transparent 28%),
-    linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 92%, #f7fbff) 0%, var(--app-bg) 44%, var(--app-bg) 100%);
+  background: var(--app-bg);
   color: var(--app-text);
   text-rendering: optimizeLegibility;
   background-attachment: fixed;
@@ -113,6 +110,29 @@ textarea {
   isolation: isolate;
 }
 
+.app-shell-height {
+  height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  .app-shell-height {
+    height: 100dvh;
+  }
+}
+
+.mobile-bottom-nav {
+  height: calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-pos-flow {
+  padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-pos-action-bar {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+
 .clovent-grid::before {
   content: "";
   position: absolute;
@@ -147,7 +167,7 @@ textarea {
   padding: 0.32rem 0.72rem;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
   text-transform: uppercase;
   background: color-mix(in srgb, var(--app-accent-soft) 88%, white);
   color: var(--app-accent-strong);

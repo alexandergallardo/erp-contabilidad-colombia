@@ -1,0 +1,60 @@
+name: Supabase Keepalive & Healthcheck
+
+on:
+  schedule:
+    # Ejecuta cada 12 horas (05:00 UTC y 17:00 UTC -> 00:00 y 12:00 Colombia)
+    - cron: '0 5,17 * * *'
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL del endpoint de healthcheck'
+        required: false
+        default: 'https://www.clovent.co/api/health'
+
+jobs:
+  ping-supabase:
+    name: Ping Supabase Keepalive
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ejecutar ping de mantenimiento
+        id: ping
+        shell: bash
+        run: |
+          TARGET="${{ github.event.inputs.target_url || 'https://www.clovent.co/api/health' }}"
+          echo "Ejecutando ping a: $TARGET"
+          
+          # Realizar petición HTTP con reintentos
+          RESPONSE=$(curl -sS --max-time 30 --retry 2 --retry-delay 3 -w "\nHTTP_STATUS:%{http_code}" "$TARGET")
+          
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d':' -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
+          
+          echo "Código HTTP recibido: $HTTP_STATUS"
+          echo "Respuesta: $BODY"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "::error::El healthcheck falló con código HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          
+          # Validar que Supabase esté conectado (db: true y ok: true)
+          DB_CONNECTED=$(echo "$BODY" | grep -o '"db":true' || true)
+          OK_STATUS=$(echo "$BODY" | grep -o '"ok":true' || true)
+          
+          if [ -z "$DB_CONNECTED" ] || [ -z "$OK_STATUS" ]; then
+            echo "::error::Supabase no respondió correctamente en el healthcheck"
+            exit 1
+          fi
+          
+          LATENCY=$(echo "$BODY" | grep -o '"latency_ms":[0-9]*' | cut -d':' -f2 || echo "N/A")
+          
+          echo "::notice::Ping exitoso. Supabase activo y conectado. Latencia: ${LATENCY}ms"
+          
+          # Agregar reporte visual al resumen de la ejecución en GitHub
+          echo "### 🟢 Supabase Keepalive Exitoso" >> $GITHUB_STEP_SUMMARY
+          echo "- **Endpoint:** \`$TARGET\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Estado DB:** Conectado (\`db: true\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latencia:** \`${LATENCY}ms\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fecha UTC:** \`$(date -u +"%Y-%m-%d %H:%M:%S UTC")\`" >> $GITHUB_STEP_SUMMARY

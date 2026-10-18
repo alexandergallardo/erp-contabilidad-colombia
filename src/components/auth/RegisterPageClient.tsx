@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Building2, CheckCircle2, Loader2, Mail, ShieldCheck, User } from 'lucide-react'
-import { BrandMark } from '@/components/brand/BrandMark'
+import { ArrowRight, Building2, Loader2, Mail, ShieldCheck, User } from 'lucide-react'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 import { Button } from '@/components/ui/button'
 
 export function RegisterPageClient() {
@@ -27,6 +27,7 @@ export function RegisterPageClient() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (loading || success) return
     setError('')
     setSuccess('')
 
@@ -37,76 +38,53 @@ export function RegisterPageClient() {
 
     setLoading(true)
 
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nombre_empresa: form.nombre_empresa,
-        nit: form.nit,
-        nombre_admin: form.nombre_admin,
-        email_admin: form.email_admin,
-        password_admin: form.password_admin,
-      }),
-    })
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre_empresa: form.nombre_empresa,
+          nit: form.nit,
+          nombre_admin: form.nombre_admin,
+          email_admin: form.email_admin,
+          password_admin: form.password_admin,
+        }),
+      })
 
-    const body = await res.json().catch(() => null)
+      const body = await res.json().catch(() => null)
 
-    if (!res.ok) {
-      setError(body?.error ?? 'No fue posible registrar la empresa')
+      if (!res.ok) {
+        setError(body?.error ?? 'No fue posible registrar la empresa')
+        return
+      }
+
+      setSuccess('Empresa creada correctamente. Ahora puedes iniciar sesión con el correo administrador.')
+      setTimeout(() => {
+        router.push(`/login?registered=1&email=${encodeURIComponent(form.email_admin)}`)
+      }, 1200)
+    } catch {
+      setError('No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    setSuccess('Empresa creada correctamente. Ahora puedes iniciar sesión con el correo administrador.')
-    setLoading(false)
-    setTimeout(() => {
-      router.push(`/login?registered=1&email=${encodeURIComponent(form.email_admin)}`)
-    }, 1200)
   }
 
   return (
-    <div className="clovent-grid relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute left-[-8%] top-[-12%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(19,148,135,0.22)_0%,rgba(19,148,135,0)_72%)] blur-2xl" />
-      <div className="pointer-events-none absolute bottom-[-10%] right-[-6%] h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(79,125,255,0.14)_0%,rgba(79,125,255,0)_72%)] blur-3xl" />
+    <div className="brand-registration relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
 
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center">
         <div className="grid w-full gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
           <section className="hidden lg:block">
             <div className="max-w-xl">
-              <div className="flex items-center gap-4">
-                <BrandMark size="xl" />
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-700">ClovEnt</p>
-                  <h1 className="mt-1 text-5xl font-black tracking-[-0.05em] text-gray-950">Activa tu empresa</h1>
-                </div>
-              </div>
-              <p className="mt-8 text-3xl font-semibold leading-tight text-gray-900">
-                Crea el acceso inicial de tu empresa y empieza a operar en una sola plataforma.
-              </p>
-              <div className="mt-8 grid gap-3">
-                {[
-                  'Se crea la empresa y el usuario administrador inicial',
-                  'Queda lista la base para ventas, compras, inventario y contabilidad',
-                  'Después puedes entrar con el correo administrador que registres',
-                ].map((item) => (
-                  <div key={item} className="clovent-panel rounded-2xl p-4">
-                    <div className="flex items-start gap-3 text-sm text-gray-700">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
-                      <span>{item}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Link href="/" aria-label="ClovEnt, inicio"><BrandLogo className="!w-72" /></Link>
+              <h1 className="mt-10 text-4xl font-semibold text-gray-950">Tu empresa conectada.<br />Desde el primer día.</h1>
+              <p className="mt-6 max-w-sm text-base leading-7 text-gray-600">Un nuevo espacio para tu negocio, tus cuentas y tu equipo.</p>
             </div>
           </section>
 
           <div className="mx-auto w-full max-w-xl">
             <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
-              <BrandMark size="lg" />
-              <div>
-                <p className="text-2xl font-black tracking-[-0.04em] text-gray-950">ClovEnt</p>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Registro de empresa</p>
-              </div>
+              <Link href="/" aria-label="ClovEnt, inicio"><BrandLogo /></Link>
             </div>
 
             <div className="clovent-panel rounded-[2rem] p-8 sm:p-9">
@@ -165,11 +143,11 @@ export function RegisterPageClient() {
                   <input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" value={form.confirm_password} onChange={(e) => updateField('confirm_password', e.target.value)} required className="flex h-12 w-full rounded-2xl border border-gray-200/80 bg-white/85 px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/12" placeholder="Repite la contraseña" />
                 </div>
 
-                {error && <div className="sm:col-span-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
-                {success && <div className="sm:col-span-2 rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-700">{success}</div>}
+                {error && <div role="alert" className="sm:col-span-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+                {success && <div role="status" className="sm:col-span-2 rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-700">{success}</div>}
 
                 <div className="sm:col-span-2">
-                  <Button type="submit" className="mt-2 h-12 w-full rounded-2xl text-sm" disabled={loading}>
+                  <Button type="submit" className="mt-2 h-12 w-full rounded-2xl text-sm" disabled={loading || Boolean(success)}>
                     {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Creando empresa...</> : <>Crear empresa <ArrowRight className="h-4 w-4" /></>}
                   </Button>
                 </div>

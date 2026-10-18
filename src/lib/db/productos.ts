@@ -2,34 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { unstable_noStore as noStore } from 'next/cache'
 import type { Producto, Familia, Fabricante } from '@/types'
 import { cleanUUIDs } from '@/lib/utils/db'
-import { getEmpresaId } from '@/lib/db/maestros'
 import { hasLowStock, isLowStock } from '@/lib/utils/stock'
 import { formatDateInTimeZone } from '@/lib/utils/dates'
-
-type StockMetricRow = {
-  cantidad?: number | null
-  cantidad_minima?: number | null
-}
-
-type ProductoSinRotacionRow = {
-  id: string
-  codigo: string
-  descripcion: string
-  precio_venta?: number | null
-  precio_compra?: number | null
-  familia?: { nombre?: string } | null
-  stock?: Array<{
-    cantidad?: number | null
-    cantidad_minima?: number | null
-    bodega?: { nombre?: string } | null
-  }> | null
-}
-
-type VentaHistorialProducto = {
-  producto_id: string
-  fecha: string
-  cantidad: number
-}
+import { getEmpresaId } from '@/lib/db/maestros'
 
 export interface ProductoSinRotacion {
   id: string
@@ -56,22 +31,6 @@ function startDateFromDays(days: number) {
   return formatISODate(date)
 }
 
-function diffDays(from: string, to = new Date()) {
-  const fromDate = new Date(`${from}T00:00:00`)
-  const ms = to.getTime() - fromDate.getTime()
-  return Math.max(0, Math.floor(ms / 86_400_000))
-}
-
-function toNumber(value: unknown) {
-  return Number(value ?? 0)
-}
-
-function shouldFallbackVentasProducto(error: unknown) {
-  const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as { code?: string }).code ?? '') : ''
-  const message = typeof error === 'object' && error !== null && 'message' in error ? String((error as { message?: string }).message ?? '') : ''
-  return code === '42P01' || code === '42501' || message.includes('ventas_producto_diarias')
-}
-
 function shouldFallbackAjusteStockObjetivo(error: unknown) {
   const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as { code?: string }).code ?? '') : ''
   const message = typeof error === 'object' && error !== null && 'message' in error ? String((error as { message?: string }).message ?? '') : ''
@@ -81,57 +40,6 @@ function shouldFallbackAjusteStockObjetivo(error: unknown) {
     message.includes('secure_ajustar_stock_objetivo') ||
     message.includes('Could not find the function public.secure_ajustar_stock_objetivo')
   )
-}
-
-async function getVentasHistorialProductos(desdeHistorico: string) {
-  const supabase = await createClient()
-  const empresaId = await getEmpresaId()
-
-  try {
-    const { data, error } = await supabase
-      .from('ventas_producto_diarias')
-      .select('producto_id, fecha, cantidad_total')
-      .eq('empresa_id', empresaId)
-      .gte('fecha', desdeHistorico)
-
-    if (error) throw error
-
-    return ((data ?? []) as Array<{ producto_id?: string | null; fecha?: string | null; cantidad_total?: number | null }>)
-      .filter((row) => row.producto_id && row.fecha)
-      .map((row) => ({
-        producto_id: String(row.producto_id),
-        fecha: String(row.fecha),
-        cantidad: Number(row.cantidad_total ?? 0),
-      })) satisfies VentaHistorialProducto[]
-  } catch (error) {
-    if (!shouldFallbackVentasProducto(error)) throw error
-
-    const { data, error: rawError } = await supabase
-      .from('documentos_lineas')
-      .select('producto_id, cantidad, documento:documentos!inner(fecha, empresa_id, tipo, estado)')
-      .eq('documento.empresa_id', empresaId)
-      .eq('documento.tipo', 'factura_venta')
-      .neq('documento.estado', 'cancelada')
-      .gte('documento.fecha', desdeHistorico)
-      .not('producto_id', 'is', null)
-
-    if (rawError) throw rawError
-
-    return ((data ?? []) as Array<{
-      producto_id?: string | null
-      cantidad?: number | null
-      documento?: { fecha?: string | null } | Array<{ fecha?: string | null }> | null
-    }>)
-      .flatMap((row) => {
-        const documento = Array.isArray(row.documento) ? row.documento[0] : row.documento
-        if (!row.producto_id || !documento?.fecha) return []
-        return [{
-          producto_id: String(row.producto_id),
-          fecha: String(documento.fecha),
-          cantidad: Number(row.cantidad ?? 0),
-        }]
-      })
-  }
 }
 
 // ── Productos ────────────────────────────────────────────────
@@ -244,127 +152,34 @@ export async function getProductoById(id: string) {
   return data as Producto
 }
 
-export async function getEstadisticasInventario() {
+export async function getEstadisticasInventario(): Promise<{
+  total: number; activos: number; stockBajo: number; sinRotacion: number; unidades: number
+}> {
   noStore()
   const supabase = await createClient()
-  const [totalRes, activosRes, productosActivosRes, stockRes, sinRotacion] = await Promise.all([
-    supabase.from('productos').select('*', { count: 'exact', head: true }),
-    supabase.from('productos').select('*', { count: 'exact', head: true }).eq('activo', true),
-    supabase
-      .from('productos')
-      .select('id, stock(cantidad, cantidad_minima)')
-      .eq('activo', true),
-    supabase
-      .from('stock')
-      .select('cantidad, producto:producto_id!inner(activo)')
-      .eq('producto.activo', true),
-    getProductosSinRotacion({ days: 90, limit: 5000 }),
-  ])
-
-  if (productosActivosRes.error) throw productosActivosRes.error
-  if (stockRes.error) throw stockRes.error
-
-  const stockBajo = (productosActivosRes.data ?? []).filter((producto) =>
-    hasLowStock((producto as { stock?: StockMetricRow[] }).stock)
-  ).length
-
-  const unidades = Math.round(
-    (stockRes.data ?? []).reduce((sum, row) => sum + Number(row.cantidad ?? 0), 0)
-  )
-
-  return {
-    total: totalRes.count ?? 0,
-    activos: activosRes.count ?? 0,
-    stockBajo,
-    sinRotacion: sinRotacion.length,
-    unidades,
-  }
+  const { data, error } = await supabase.rpc('get_estadisticas_inventario', { p_desde: startDateFromDays(90) })
+  if (error) throw error
+  return data
 }
 
 export async function getProductosSinRotacion(params?: {
   days?: number
   historyDays?: number
   limit?: number
-}) {
+}): Promise<ProductoSinRotacion[]> {
   noStore()
   const supabase = await createClient()
   const days = Math.max(30, Math.min(params?.days ?? 90, 365))
   const historyDays = Math.max(days, Math.min(params?.historyDays ?? 730, 1460))
   const limit = Math.max(10, Math.min(params?.limit ?? 200, 5000))
-  const desdeVentana = startDateFromDays(days)
-  const desdeHistorico = startDateFromDays(historyDays)
-
-  const [{ data: productos, error }, ventas] = await Promise.all([
-    supabase
-      .from('productos')
-      .select(`
-        id,
-        codigo,
-        descripcion,
-        precio_venta,
-        precio_compra,
-        familia:familia_id(nombre),
-        stock(
-          cantidad,
-          cantidad_minima,
-          bodega:bodegas(nombre)
-        )
-      `)
-      .eq('activo', true)
-      .order('descripcion'),
-    getVentasHistorialProductos(desdeHistorico),
-  ])
-
+  const { data, error } = await supabase.rpc('get_productos_sin_rotacion', {
+    p_desde: startDateFromDays(days),
+    p_historico: startDateFromDays(historyDays),
+    p_hoy: formatISODate(new Date()),
+    p_limite: limit,
+  })
   if (error) throw error
-
-  const ventasPorProducto = ventas.reduce((acc, row) => {
-    const current = acc.get(row.producto_id) ?? {
-      ventas_periodo: 0,
-      ultima_venta: null as string | null,
-    }
-
-    if (row.fecha >= desdeVentana) {
-      current.ventas_periodo += Number(row.cantidad ?? 0)
-    }
-    if (!current.ultima_venta || row.fecha > current.ultima_venta) {
-      current.ultima_venta = row.fecha
-    }
-
-    acc.set(row.producto_id, current)
-    return acc
-  }, new Map<string, { ventas_periodo: number; ultima_venta: string | null }>())
-
-  return ((productos ?? []) as ProductoSinRotacionRow[])
-    .map((producto) => {
-      const stocks = Array.isArray(producto.stock) ? producto.stock : []
-      const stock_actual = stocks.reduce((sum, stock) => sum + toNumber(stock.cantidad), 0)
-      const stock_minimo = stocks.reduce((sum, stock) => sum + toNumber(stock.cantidad_minima), 0)
-      const ventasProducto = ventasPorProducto.get(producto.id)
-      const ventas_periodo = Number(ventasProducto?.ventas_periodo ?? 0)
-      const ultima_venta = ventasProducto?.ultima_venta ?? null
-
-      return {
-        id: producto.id,
-        codigo: producto.codigo,
-        descripcion: producto.descripcion,
-        familia: producto.familia ?? null,
-        stock_actual,
-        stock_minimo,
-        ventas_periodo,
-        ultima_venta,
-        dias_sin_venta: ultima_venta ? diffDays(ultima_venta) : null,
-        precio_compra: toNumber(producto.precio_compra),
-        precio_venta: toNumber(producto.precio_venta),
-        valor_stock: Math.round(stock_actual * Math.max(toNumber(producto.precio_compra), 0)),
-      } satisfies ProductoSinRotacion
-    })
-    .filter((producto) => producto.stock_actual > 0 && producto.ventas_periodo <= 0)
-    .sort((a, b) => {
-      if (b.valor_stock !== a.valor_stock) return b.valor_stock - a.valor_stock
-      if (b.stock_actual !== a.stock_actual) return b.stock_actual - a.stock_actual
-      return a.descripcion.localeCompare(b.descripcion, 'es')
-    })
-    .slice(0, limit)
+  return data ?? []
 }
 
 export async function getMovimientosProducto(producto_id: string, limit = 15) {

@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, Minus, Trash2, ShoppingCart, Calculator, User, X, CheckCircle } from 'lucide-react'
+import { ClienteQuickCreateButton, type ClienteLookupOption } from '@/components/clientes/ClienteQuickCreateButton'
+import { POSFacturaMobile } from '@/components/pos/POSFacturaMobile'
+import { useIsMobile } from '@/hooks/useMediaQuery'
 import { formatCOP } from '@/utils/cn'
+import { buildFacturaPrintHref, type FacturaPrintFormat } from '@/lib/print/factura'
+import type { Bodega, Impuesto } from '@/types'
+import type { FacturaColaborador, FacturaFormaPago } from '@/components/ventas/factura-helpers'
 
 interface ProductoSimple {
   id: string
@@ -17,11 +23,8 @@ interface ClienteSimple {
   id: string
   razon_social: string
   numero_documento: string
-  telefono?: string
+  telefono?: string | null
 }
-
-interface Bodega { id: string; nombre: string }
-interface FormaPago { id: string; descripcion: string }
 
 interface LineaPOS {
   producto_id: string
@@ -34,12 +37,24 @@ interface LineaPOS {
 
 interface Props {
   bodegas: Bodega[]
-  formasPago: FormaPago[]
+  formasPago: FacturaFormaPago[]
+  impuestos: Impuesto[]
+  colaboradores: FacturaColaborador[]
 }
 
 const CF_PLACEHOLDER: ClienteSimple = { id: '', razon_social: 'Consumidor Final', numero_documento: '222222222222' }
 
-export function PantallaPOS({ bodegas, formasPago }: Props) {
+export function PantallaPOS(props: Props) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return <POSFacturaMobile {...props} />
+  }
+
+  return <PantallaPOSDesktop bodegas={props.bodegas} formasPago={props.formasPago} />
+}
+
+function PantallaPOSDesktop({ bodegas, formasPago }: Pick<Props, 'bodegas' | 'formasPago'>) {
   const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
   const [productos, setProductos] = useState<ProductoSimple[]>([])
@@ -84,7 +99,7 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
         })
         if (busqueda.trim()) params.set('q', busqueda.trim())
 
-        const res = await fetch(`/api/productos?${params.toString()}`, {
+        const res = await fetch(`/api/ventas/productos-selector?${params.toString()}`, {
           signal: controller.signal,
           cache: 'no-store',
         })
@@ -146,6 +161,17 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
   const productosFiltrados = productos.slice(0, 20)
   const clientesFiltrados = [cfReal, ...clientes.filter((item) => item.id !== cfReal.id)]
 
+  const seleccionarCliente = (item: ClienteLookupOption) => {
+    setCliente({
+      id: item.id,
+      razon_social: item.razon_social,
+      numero_documento: item.numero_documento ?? '',
+      telefono: item.telefono ?? null,
+    })
+    setBusqCliente('')
+    setShowClientes(false)
+  }
+
   const agregarProducto = (producto: ProductoSimple) => {
     setLineas((prev) => {
       const idx = prev.findIndex((linea) => linea.producto_id === producto.id)
@@ -198,6 +224,15 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
     ? Math.max(0, parseFloat(efectivoRecibido) - total)
     : 0
 
+  const abrirTicket = (formato: FacturaPrintFormat) => {
+    if (!resultado) return
+    const href = buildFacturaPrintHref(resultado.id, formato)
+    const popup = window.open(href, '_blank', 'noopener,noreferrer')
+    if (!popup) {
+      router.push(href)
+    }
+  }
+
   const handleVenta = async () => {
     if (!lineas.length || !bodegaId || !formaPagoId) return
     if (!cliente.id) {
@@ -249,10 +284,16 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => router.push(`/print/factura/${resultado.id}`)}
+            onClick={() => abrirTicket('termica-80')}
             className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
           >
-            Imprimir ticket
+            Imprimir ticket 80 mm
+          </button>
+          <button
+            onClick={() => abrirTicket('termica-58')}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+          >
+            Ticket 58 mm
           </button>
           <button
             onClick={() => setResultado(null)}
@@ -346,8 +387,7 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
                       key={item.id}
                       type="button"
                       onClick={() => {
-                        setCliente(item)
-                        setShowClientes(false)
+                        seleccionarCliente(item)
                       }}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
@@ -359,6 +399,15 @@ export function PantallaPOS({ bodegas, formasPago }: Props) {
               </div>
             </div>
           )}
+          <div className="mt-2 flex justify-end">
+            <ClienteQuickCreateButton
+              onCreated={seleccionarCliente}
+              triggerLabel="Nuevo cliente"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700"
+            />
+          </div>
         </div>
 
         <div className="flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">

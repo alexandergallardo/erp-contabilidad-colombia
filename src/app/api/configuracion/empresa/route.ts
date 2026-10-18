@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { toErrorMsg } from '@/lib/utils/errors'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
+import { EMPRESA_CONFIG_UPDATE_FIELDS } from '@/lib/billing/guardrails'
 
 export async function GET() {
   try {
@@ -33,9 +34,8 @@ export async function PATCH(req: NextRequest) {
     const { data: emp } = await supabase.from('empresas').select('id').limit(1).single()
     if (!emp?.id) return NextResponse.json({ error: 'Empresa no encontrada' }, { status: 404 })
 
-    const allowed = ['nombre', 'nit', 'dv', 'razon_social', 'direccion', 'ciudad', 'departamento', 'pais', 'telefono', 'email', 'regimen', 'tipo_org', 'plantilla_pdf']
     const updates: Record<string, unknown> = {}
-    for (const k of allowed) {
+    for (const k of EMPRESA_CONFIG_UPDATE_FIELDS) {
       if (k in body) updates[k] = body[k] === '' ? null : body[k]
     }
     updates.updated_at = new Date().toISOString()

@@ -42,6 +42,7 @@ export async function proxy(request: NextRequest) {
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml' ||
     pathname.startsWith('/login') ||
+    pathname.startsWith('/validar') ||
     pathname.startsWith('/api/auth/') ||
     pathname.startsWith('/print') ||
     pathname.startsWith('/api/health')
@@ -49,7 +50,7 @@ export async function proxy(request: NextRequest) {
   // Rutas públicas
   if (isPublicRoute) {
     if (user && (pathname === '/login' || pathname === '/')) {
-      const context = await getUsuarioContext(supabase, user.id)
+      const context = await getUsuarioContext(supabase, user.id, { includeMemberships: false })
       if (context) {
         const home = context.rol === 'superadmin' ? '/superadmin' : '/dashboard'
         return NextResponse.redirect(new URL(home, request.url))
@@ -65,7 +66,7 @@ export async function proxy(request: NextRequest) {
       : NextResponse.redirect(loginUrl)
   }
 
-  const context = await getUsuarioContext(supabase, user.id)
+  const context = await getUsuarioContext(supabase, user.id, { includeMemberships: false })
   if (!context) {
     return isApiRoute
       ? unauthorizedApi(403, 'Sesión inválida o usuario inactivo')

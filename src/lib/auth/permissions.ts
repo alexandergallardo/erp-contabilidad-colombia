@@ -129,6 +129,7 @@ const API_ROUTE_RULES: readonly RouteRule[] = [
   { prefix: '/api/ventas', module: 'ventas' },
   { prefix: '/api/documentos/duplicar', module: 'ventas' },
   { prefix: '/api/email', module: 'ventas' },
+  { prefix: '/api/import/factura-electronica', module: 'compras' },
   { prefix: '/api/import', module: 'configuracion' },
   { prefix: '/api/export/compras', module: 'compras' },
   { prefix: '/api/export/proveedores', module: 'compras' },

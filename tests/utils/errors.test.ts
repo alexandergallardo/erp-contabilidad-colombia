@@ -8,6 +8,9 @@ test('getErrorStatus prioriza HttpError', () => {
 
 test('getErrorStatus mapea códigos conocidos', () => {
   assert.equal(getErrorStatus({ code: '23505' }), 409)
+  assert.equal(getErrorStatus({ code: '42501' }), 403)
+  assert.equal(getErrorStatus({ code: '22023' }), 400)
+  assert.equal(getErrorStatus({ code: '22P02' }), 400)
   assert.equal(getErrorStatus({ code: 'PGRST116' }), 404)
   assert.equal(getErrorStatus({}), 500)
 })

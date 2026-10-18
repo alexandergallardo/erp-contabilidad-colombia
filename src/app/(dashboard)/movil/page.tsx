@@ -86,7 +86,7 @@ export default async function MobileHomePage() {
     { label: 'Sugeridos', href: '/compras/sugeridos', icon: Lightbulb, accent: 'from-cyan-500 to-cyan-700' },
     { label: 'Kardex', href: '/inventario/kardex', icon: Warehouse, accent: 'from-slate-500 to-slate-700' },
     { label: 'Notificaciones', href: '/notificaciones', icon: Bell, accent: 'from-rose-500 to-pink-700' },
-    { label: 'Dashboard', href: '/', icon: LayoutDashboard, accent: 'from-gray-500 to-gray-800' },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, accent: 'from-gray-500 to-gray-800' },
   ].filter((item) => {
     if (!session) return false
     if (item.href.startsWith('/compras')) return canAccessModule(session.rol, 'compras')
@@ -155,11 +155,11 @@ export default async function MobileHomePage() {
 
       <section className="grid grid-cols-2 gap-3">
         <div className="rounded-[1.5rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Compras mes</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">Compras mes</p>
           <p className="mt-2 text-lg font-bold text-gray-900 dark:text-gray-100">{formatCOP(kpis?.compras_mes ?? 0)}</p>
         </div>
         <div className="rounded-[1.5rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Por pagar</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">Por pagar</p>
           <p className="mt-2 text-lg font-bold text-gray-900 dark:text-gray-100">{formatCOP(kpis?.por_pagar ?? 0)}</p>
         </div>
       </section>

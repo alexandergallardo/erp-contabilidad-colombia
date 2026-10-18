@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Lock, ShieldCheck } from 'lucide-react'
 
 const inputCls = 'flex h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-900/80 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-amber-400'
@@ -18,8 +19,8 @@ export default function CambiarPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (newPassword.length < 6) {
-      setError('La contraseña debe tener mínimo 6 caracteres')
+    if (newPassword.length < 8) {
+      setError('La contraseña debe tener mínimo 8 caracteres')
       return
     }
 
@@ -42,7 +43,7 @@ export default function CambiarPasswordPage() {
       return
     }
 
-    router.push('/')
+    router.push('/dashboard')
     router.refresh()
   }
 
@@ -57,7 +58,7 @@ export default function CambiarPasswordPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Cambiar contraseña</h1>
             <p className="text-sm text-gray-500 dark:text-gray-300">
-              Es tu primer inicio de sesión. Por seguridad, establece una nueva contraseña.
+              Actualiza tu contraseña para mantener segura tu cuenta de ClovEnt.
             </p>
           </div>
         </div>
@@ -74,7 +75,8 @@ export default function CambiarPasswordPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 autoFocus
-                minLength={6}
+                minLength={8}
+                autoComplete="new-password"
                 className={inputCls}
               />
             </div>
@@ -87,7 +89,8 @@ export default function CambiarPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
+                autoComplete="new-password"
                 className={inputCls}
               />
             </div>
@@ -99,8 +102,14 @@ export default function CambiarPasswordPage() {
             )}
 
             <Button type="submit" className="mt-2 h-10 w-full" disabled={loading}>
-              {loading ? 'Guardando...' : 'Establecer nueva contraseña'}
+              {loading ? 'Guardando...' : 'Cambiar contraseña'}
             </Button>
+            <Link
+              href="/dashboard"
+              className="text-center text-sm font-medium text-gray-500 hover:text-amber-700 dark:text-gray-400 dark:hover:text-amber-300"
+            >
+              Volver al dashboard
+            </Link>
           </form>
         </div>
       </div>

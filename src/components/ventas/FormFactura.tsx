@@ -4,72 +4,43 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RemoteLookup } from '@/components/ui/remote-lookup'
+import { ClienteLookupField } from '@/components/clientes/ClienteLookupField'
+import { type ClienteLookupOption, formatClienteLookupLabel } from '@/components/clientes/ClienteQuickCreateButton'
 import { calcularFechaVencimientoFormaPago, isSistecreditoFormaPago } from '@/lib/utils/formas-pago'
+import {
+  applyProductoToLinea,
+  calcLinea,
+  clearProductoFromLinea,
+  createEmptyFacturaLinea,
+  descuentoToPct,
+  formatProductoLabel,
+  getDefaultBodegaId,
+  updateLineaTotal,
+  type FacturaColaborador,
+  type FacturaFormaPago,
+  type FacturaLinea,
+  type FacturaProductoOption,
+} from '@/components/ventas/factura-helpers'
 
 import type { Impuesto, Bodega } from '@/types'
 import { formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import { Plus, Trash2, AlertCircle } from 'lucide-react'
 
-interface FormaPago { id: string; descripcion: string; tipo: string; dias_vencimiento: number }
-interface Colaborador { id: string; nombre: string }
-
-interface ClienteOption {
-  id: string
-  razon_social: string
-  numero_documento?: string | null
-  email?: string | null
-}
-
-interface ProductoOption {
-  id: string
-  codigo: string
-  descripcion: string
-  precio_venta: number
-  impuesto_id?: string | null
-}
-
-interface Linea {
-  producto_id: string
-  producto_codigo: string
-  descripcion: string
-  cantidad: number
-  precio_unitario: number
-  descuento_valor: number
-  impuesto_id: string
-  iva_pct: number
-}
-
-function calcLinea(l: Linea) {
-  const subtotal = l.cantidad * l.precio_unitario
-  const descuento = Math.min(l.descuento_valor, subtotal)
-  const base = subtotal - descuento
-  const iva = base * (l.iva_pct / 100)
-  return { subtotal, descuento, iva, total: base + iva }
-}
-
-/** Convert absolute discount to percentage for backend */
-function descuentoToPct(linea: Linea): number {
-  const subtotal = linea.cantidad * linea.precio_unitario
-  if (subtotal <= 0 || linea.descuento_valor <= 0) return 0
-  return Math.round(((linea.descuento_valor / subtotal) * 100) * 10000) / 10000
-}
-
 interface Props {
   impuestos: Impuesto[]
   bodegas: Bodega[]
-  formasPago: FormaPago[]
-  colaboradores: Colaborador[]
+  formasPago: FacturaFormaPago[]
+  colaboradores: FacturaColaborador[]
 }
 
 const hoy = todayLocalISODate()
 
-function formatClienteLabel(cliente: ClienteOption) {
-  if (!cliente.numero_documento) return cliente.razon_social
-  return `${cliente.razon_social} (${cliente.numero_documento})`
-}
-
-function formatProductoLabel(producto: { codigo?: string; descripcion?: string }) {
-  return [producto.codigo, producto.descripcion].filter(Boolean).join(' · ')
+function normalizeLookupText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
 }
 
 export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: Props) {
@@ -77,13 +48,14 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
 
   const [cliente_id, setClienteId] = useState('')
   const [clienteLabel, setClienteLabel] = useState('')
-  const [bodega_id, setBodegaId] = useState(bodegas.find((b) => b.principal)?.id ?? bodegas[0]?.id ?? '')
+  const [bodega_id, setBodegaId] = useState(getDefaultBodegaId(bodegas))
   const [forma_pago_id, setFormaPagoId] = useState(formasPago[0]?.id ?? '')
   const [colaborador_id, setColaboradorId] = useState('')
   const [fecha, setFecha] = useState(hoy)
   const [fecha_vencimiento, setVencimiento] = useState(() => calcularFechaVencimientoFormaPago(formasPago[0], hoy))
   const [observaciones, setObs] = useState('')
-  const [lineas, setLineas] = useState<Linea[]>([])
+  const [lineas, setLineas] = useState<FacturaLinea[]>([])
+  const [productoQueries, setProductoQueries] = useState<Record<number, string>>({})
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -98,43 +70,72 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
   }
 
   function agregarLinea() {
-    const impuestoBase = impuestos[0]
-    setLineas((prev) => [...prev, {
-      producto_id: '',
-      producto_codigo: '',
-      descripcion: '',
-      cantidad: 1,
-      precio_unitario: 0,
-      descuento_valor: 0,
-      impuesto_id: impuestoBase?.id ?? '',
-      iva_pct: impuestoBase?.porcentaje ?? 0,
-    }])
+    setLineas((prev) => [...prev, createEmptyFacturaLinea(impuestos)])
   }
 
-  function handleProductoSelect(idx: number, producto: ProductoOption) {
-    const imp = impuestos.find((item) => item.id === producto.impuesto_id) ?? impuestos[0]
-    setLineas((prev) => prev.map((linea, index) => index !== idx ? linea : {
-      ...linea,
-      producto_id: producto.id,
-      producto_codigo: producto.codigo ?? '',
-      descripcion: producto.descripcion ?? '',
-      precio_unitario: Number(producto.precio_venta ?? 0),
-      impuesto_id: imp?.id ?? '',
-      iva_pct: imp?.porcentaje ?? 0,
-    }))
+  function handleProductoSelect(idx: number, producto: FacturaProductoOption) {
+    setLineas((prev) => prev.map((linea, index) =>
+      index !== idx ? linea : applyProductoToLinea(linea, producto, impuestos)
+    ))
+    setProductoQueries((prev) => ({ ...prev, [idx]: formatProductoLabel(producto) }))
   }
 
   function clearProducto(idx: number) {
-    setLineas((prev) => prev.map((linea, index) => index !== idx ? linea : {
-      ...linea,
-      producto_id: '',
-      producto_codigo: '',
-      descripcion: '',
-      precio_unitario: 0,
-    }))
+    setLineas((prev) => prev.map((linea, index) =>
+      index !== idx ? linea : clearProductoFromLinea(linea)
+    ))
+    setProductoQueries((prev) => ({ ...prev, [idx]: '' }))
   }
 
-  function updateLinea(idx: number, field: keyof Linea, value: string | number) {
+  async function resolverProductoDigitado(query: string) {
+    const trimmed = query.trim()
+    if (!trimmed) return null
+
+    const params = new URLSearchParams({
+      q: trimmed,
+      limit: '5',
+      activo: 'true',
+      select_mode: 'selector',
+      include_total: 'false',
+    })
+    const res = await fetch(`/api/ventas/productos-selector?${params.toString()}`, { cache: 'no-store' })
+    if (!res.ok) return null
+
+    const data = await res.json()
+    const productos = Array.isArray(data?.productos) ? data.productos as FacturaProductoOption[] : []
+    if (!productos.length) return null
+
+    const normalizedQuery = normalizeLookupText(trimmed)
+    return productos.find((producto) => normalizeLookupText(producto.codigo ?? '') === normalizedQuery)
+      ?? productos.find((producto) => normalizeLookupText(formatProductoLabel(producto)) === normalizedQuery)
+      ?? (productos.length === 1 ? productos[0] : null)
+  }
+
+  async function resolverLineasPendientes(currentLineas: FacturaLinea[]) {
+    let resolvedLineas = currentLineas
+    const resolvedQueries: Record<number, string> = {}
+
+    for (const [idx, linea] of currentLineas.entries()) {
+      if (linea.producto_id) continue
+
+      const producto = await resolverProductoDigitado(productoQueries[idx] ?? linea.producto_codigo ?? linea.descripcion)
+      if (!producto) continue
+
+      resolvedLineas = resolvedLineas.map((item, index) =>
+        index === idx ? applyProductoToLinea(item, producto, impuestos) : item
+      )
+      resolvedQueries[idx] = formatProductoLabel(producto)
+    }
+
+    if (resolvedLineas !== currentLineas) {
+      setLineas(resolvedLineas)
+      setProductoQueries((prev) => ({ ...prev, ...resolvedQueries }))
+    }
+
+    return resolvedLineas
+  }
+
+  function updateLinea(idx: number, field: keyof FacturaLinea, value: string | number) {
     setLineas((prev) => prev.map((linea, index) => {
       if (index !== idx) return linea
       const updated = { ...linea, [field]: value }
@@ -149,11 +150,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
   function updateTotal(idx: number, nuevoTotal: number) {
     setLineas((prev) => prev.map((linea, index) => {
       if (index !== idx) return linea
-      const qty = linea.cantidad || 1
-      const ivaMult = 1 + (linea.iva_pct / 100)
-      const base = nuevoTotal / ivaMult
-      const precioUnitario = (base + linea.descuento_valor) / qty
-      return { ...linea, precio_unitario: Math.round(precioUnitario * 100) / 100 }
+      return updateLineaTotal(linea, nuevoTotal)
     }))
   }
 
@@ -172,7 +169,9 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
     if (!cliente_id) { setError('Selecciona un cliente'); return }
     if (!lineas.length) { setError('Agrega al menos un producto'); return }
 
-    for (const linea of lineas) {
+    const lineasResueltas = await resolverLineasPendientes(lineas)
+
+    for (const linea of lineasResueltas) {
       if (!linea.producto_id) { setError('Selecciona un producto en todas las líneas'); return }
       if (linea.cantidad <= 0) { setError('La cantidad debe ser mayor a 0'); return }
     }
@@ -189,7 +188,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
         fecha,
         fecha_vencimiento: fecha_vencimiento || null,
         observaciones: observaciones || null,
-        lineas: lineas.map((linea) => ({
+        lineas: lineasResueltas.map((linea) => ({
           producto_id: linea.producto_id,
           variante_id: null,
           descripcion: linea.descripcion,
@@ -222,29 +221,15 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
       <div className={`${cardCls} p-5`}>
         <h3 className="mb-4 text-sm font-semibold text-gray-700">Informacion general</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
-            <label className="text-sm font-medium text-gray-700">Cliente *</label>
-            <RemoteLookup<ClienteOption>
-              endpoint="/api/clientes"
-              responseKey="clientes"
-              value={cliente_id}
-              initialLabel={clienteLabel}
-              placeholder="Buscar por nombre, NIT o correo"
-              emptyMessage="Sin clientes para mostrar"
-              queryParams={{ activo: true }}
-              minChars={1}
-              onSelect={(cliente) => {
-                setClienteId(cliente.id)
-                setClienteLabel(formatClienteLabel(cliente))
-              }}
-              onClear={() => {
-                setClienteId('')
-                setClienteLabel('')
-              }}
-              getOptionLabel={(cliente) => formatClienteLabel(cliente)}
-              getOptionDescription={(cliente) => cliente.email ?? undefined}
-            />
-          </div>
+          <ClienteLookupField
+            value={cliente_id}
+            initialLabel={clienteLabel}
+            className="sm:col-span-2 lg:col-span-1"
+            onChange={(cliente: ClienteLookupOption | null) => {
+              setClienteId(cliente?.id ?? '')
+              setClienteLabel(cliente ? formatClienteLookupLabel(cliente) : '')
+            }}
+          />
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Forma de pago *</label>
@@ -375,8 +360,8 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                     return (
                       <tr key={idx} className="group">
                         <td className="py-2 pl-1 pr-2">
-                          <RemoteLookup<ProductoOption>
-                            endpoint="/api/productos"
+                          <RemoteLookup<FacturaProductoOption>
+                            endpoint="/api/ventas/productos-selector"
                             responseKey="productos"
                             value={linea.producto_id}
                             initialLabel={linea.producto_id ? formatProductoLabel({
@@ -392,6 +377,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                             optionClassName="py-2.5"
                             onSelect={(producto) => handleProductoSelect(idx, producto)}
                             onClear={() => clearProducto(idx)}
+                            onInputValueChange={(value) => setProductoQueries((prev) => ({ ...prev, [idx]: value }))}
                             getOptionLabel={(producto) => formatProductoLabel(producto)}
                             getOptionDescription={(producto) => formatCOP(Number(producto.precio_venta ?? 0))}
                           />
@@ -410,7 +396,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                           <input
                             type="number"
                             min="0"
-                            step="1"
+                            step="0.01"
                             value={linea.precio_unitario}
                             onChange={(event) => updateLinea(idx, 'precio_unitario', parseFloat(event.target.value) || 0)}
                             className={`${inputCls} ${noSpinnerCls} text-right`}
@@ -488,8 +474,8 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                     </div>
 
                     <div className="mb-3">
-                      <RemoteLookup<ProductoOption>
-                        endpoint="/api/productos"
+                      <RemoteLookup<FacturaProductoOption>
+                        endpoint="/api/ventas/productos-selector"
                         responseKey="productos"
                         value={linea.producto_id}
                         initialLabel={linea.producto_id ? formatProductoLabel({
@@ -505,6 +491,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                         optionClassName="py-2.5"
                         onSelect={(producto) => handleProductoSelect(idx, producto)}
                         onClear={() => clearProducto(idx)}
+                        onInputValueChange={(value) => setProductoQueries((prev) => ({ ...prev, [idx]: value }))}
                         getOptionLabel={(producto) => formatProductoLabel(producto)}
                         getOptionDescription={(producto) => formatCOP(Number(producto.precio_venta ?? 0))}
                       />
@@ -527,7 +514,7 @@ export function FormFactura({ impuestos, bodegas, formasPago, colaboradores }: P
                         <input
                           type="number"
                           min="0"
-                          step="1"
+                          step="0.01"
                           value={linea.precio_unitario}
                           onChange={(event) => updateLinea(idx, 'precio_unitario', parseFloat(event.target.value) || 0)}
                           className={`${inputCls} ${noSpinnerCls} text-right`}

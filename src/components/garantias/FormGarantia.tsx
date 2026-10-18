@@ -102,7 +102,7 @@ export function FormGarantia() {
           <div className="flex flex-col gap-1 sm:col-span-2">
             <label className="text-sm font-medium text-gray-700">Producto</label>
             <RemoteLookup<ProductoOption>
-              endpoint="/api/productos"
+              endpoint="/api/ventas/productos-selector"
               responseKey="productos"
               value={form.producto_id}
               initialLabel={productoLabel}

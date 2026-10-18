@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Upload, CheckCircle, XCircle, FileText, Download, FileSpreadsheet } from 'lucide-react'
 import { createXlsxBlob, parseCSVText, parseXlsxBuffer } from '@/lib/utils/csv'
 import {
   type ImportEntity,
   IMPORT_COLUMNS,
+  IMPORT_ENTITY_ORDER,
   IMPORT_ENTITY_META,
   IMPORT_EXAMPLE_ROWS,
 } from '@/lib/import/migration'
@@ -38,8 +39,14 @@ function downloadBlob(blob: Blob, fileName: string) {
   const a = document.createElement('a')
   a.href = url
   a.download = fileName
+  a.style.display = 'none'
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+
+  window.setTimeout(() => {
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, 1000)
 }
 
 function getEntidadNote(entidad: ImportEntity) {
@@ -87,8 +94,20 @@ function getExportActions(entidad: ImportEntity) {
   }
 }
 
-export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: ImportEntity }) {
-  const [entidad, setEntidad] = useState<ImportEntity>(initialEntidad)
+interface ImportarCSVProps {
+  initialEntidad?: ImportEntity
+  allowedEntidades?: readonly ImportEntity[]
+  onEntidadChange?: (entidad: ImportEntity) => void
+}
+
+export function ImportarCSV({ initialEntidad = 'clientes', allowedEntidades, onEntidadChange }: ImportarCSVProps) {
+  const allowed = useMemo(
+    () => (allowedEntidades && allowedEntidades.length > 0 ? allowedEntidades : IMPORT_ENTITY_ORDER) as readonly ImportEntity[],
+    [allowedEntidades]
+  )
+  const allowedSet = useMemo(() => new Set<ImportEntity>(allowed), [allowed])
+  const defaultEntidad = allowedSet.has(initialEntidad) ? initialEntidad : (allowed[0] ?? 'clientes')
+  const [entidad, setEntidad] = useState<ImportEntity>(defaultEntidad)
   const [filas, setFilas] = useState<Record<string, string>[]>([])
   const [resultados, setResultados] = useState<ResultadoFila[]>([])
   const [importando, setImportando] = useState(false)
@@ -97,13 +116,14 @@ export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: 
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setEntidad(initialEntidad)
+    const nextEntidad = allowed.includes(initialEntidad) ? initialEntidad : (allowed[0] ?? 'clientes')
+    setEntidad(nextEntidad)
     setFilas([])
     setResultados([])
     setCompletado(false)
     setError(null)
     if (fileRef.current) fileRef.current.value = ''
-  }, [initialEntidad])
+  }, [initialEntidad, allowed])
 
   function descargarEjemploCSV() {
     const csv = generarCSVEjemplo(entidad)
@@ -164,7 +184,9 @@ export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: 
   }
 
   function cambiarEntidad(nextEntidad: ImportEntity) {
+    if (!allowedSet.has(nextEntidad)) return
     setEntidad(nextEntidad)
+    onEntidadChange?.(nextEntidad)
     setFilas([])
     setResultados([])
     setCompletado(false)
@@ -201,9 +223,17 @@ export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: 
   const columnas = IMPORT_COLUMNS[entidad]
   const meta = IMPORT_ENTITY_META[entidad]
   const exportActions = getExportActions(entidad)
+  const mostrarSelector = allowed.length > 1
+  const gruposVisibles = IMPORT_ENTITY_GROUPS
+    .map((group) => ({
+      ...group,
+      entidades: group.entidades.filter((item) => allowedSet.has(item)),
+    }))
+    .filter((group) => group.entidades.length > 0)
 
   return (
     <div className="flex flex-col gap-6">
+      {mostrarSelector && (
       <div className={cn(cardCls, 'p-4')}>
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -211,7 +241,7 @@ export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: 
             Importacion rapida por entidad
           </div>
           <div className="flex flex-col gap-4">
-            {IMPORT_ENTITY_GROUPS.map((group) => (
+            {gruposVisibles.map((group) => (
               <div key={group.label} className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
                   {group.label}
@@ -238,6 +268,7 @@ export function ImportarCSV({ initialEntidad = 'clientes' }: { initialEntidad?: 
           </div>
         </div>
       </div>
+      )}
 
       <div className={cn(cardCls, 'p-5')}>
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">

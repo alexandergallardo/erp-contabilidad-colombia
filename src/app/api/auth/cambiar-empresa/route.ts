@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     // Verify user has access to this empresa
     const { data: membership, error: memErr } = await service
       .from('usuario_empresas')
-      .select('empresa_id, rol_id, empresas(nombre)')
+      .select('empresa_id, rol_id')
       .eq('usuario_id', session.id)
       .eq('empresa_id', empresa_id)
       .eq('activo', true)
@@ -47,13 +47,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: updErr.message }, { status: 500 })
     }
 
-    const empresas = membership.empresas as { nombre: string } | { nombre: string }[] | null
-    const empresaNombre = Array.isArray(empresas) ? empresas[0]?.nombre : empresas?.nombre
+    const { data: empresa } = await service
+      .from('empresas')
+      .select('nombre')
+      .eq('id', empresa_id)
+      .maybeSingle()
 
     return NextResponse.json({
       ok: true,
       empresa_id,
-      empresa_nombre: empresaNombre ?? '',
+      empresa_nombre: empresa?.nombre ?? '',
       rol,
     })
   } catch (e: unknown) {

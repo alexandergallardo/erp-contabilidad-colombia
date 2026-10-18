@@ -28,13 +28,22 @@ function getEmpresaNombre(empresas: UsuarioContextRow['empresas']) {
 
 export async function getUsuarioContext(
   supabase: Pick<SupabaseClient, 'from'>,
-  userId: string
+  userId: string,
+  options: { includeMemberships?: boolean } = {}
 ): Promise<UsuarioContext | null> {
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('id, nombre, empresa_id, rol_id, activo, debe_cambiar_password, empresas(nombre)')
-    .eq('id', userId)
-    .single()
+  const [usuario, memberships] = await Promise.all([
+    supabase
+      .from('usuarios')
+      .select('id, nombre, empresa_id, rol_id, activo, debe_cambiar_password, empresas(nombre)')
+      .eq('id', userId)
+      .single(),
+    options.includeMemberships === false
+      ? Promise.resolve({ data: null })
+      : supabase.from('usuario_empresas').select('empresa_id')
+        .eq('usuario_id', userId).eq('activo', true).limit(2)
+        .then(result => result, () => ({ data: null })),
+  ])
+  const { data, error } = usuario
 
   if (error || !data) return null
 
@@ -44,18 +53,7 @@ export async function getUsuarioContext(
   const rol = resolveRoleById(row.rol_id)
   if (!rol) return null
 
-  // Check multi-empresa access (graceful if table doesn't exist yet)
-  let tieneMultiEmpresa = false
-  try {
-    const { count } = await supabase
-      .from('usuario_empresas')
-      .select('*', { count: 'exact', head: true })
-      .eq('usuario_id', userId)
-      .eq('activo', true)
-    tieneMultiEmpresa = (count ?? 0) > 1
-  } catch {
-    // Table may not exist yet — default to false
-  }
+  const tieneMultiEmpresa = (memberships.data?.length ?? 0) > 1
 
   return {
     id: row.id,

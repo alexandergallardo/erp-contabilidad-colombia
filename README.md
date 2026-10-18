@@ -161,7 +161,7 @@ Tambien existe una vista interna de ayuda en la aplicacion:
 
 ## Variables de entorno
 
-Configura en `.env.local` (local) y en **Vercel → Settings → Environment Variables** (producción):
+Configura en `.env.local` solo para desarrollo local y en **Vercel → Settings → Environment Variables** para producción. Los archivos `.env*` no se suben a Vercel; `.vercelignore` los excluye del paquete de deploy.
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co

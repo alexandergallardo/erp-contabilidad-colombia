@@ -25,6 +25,8 @@
 *.pem
 /supabase/.temp
 /.playwright-cli
+/output/
+/eslint-report.json
 /tmp
 import-productos.js
 

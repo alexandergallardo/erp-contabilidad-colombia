@@ -116,27 +116,16 @@ function formatMonthLabel(monthKey: string) {
 
 // ── Estadísticas ─────────────────────────────────────────────
 
-export async function getEstadisticasVentas() {
+export async function getEstadisticasVentas(): Promise<{
+  total: number; pendiente: number; pagada: number; este_mes: number
+}> {
   const supabase = await createClient()
   const hoy = getTodayInAppTimeZone()
   const inicioMes = `${hoy.slice(0, 7)}-01`
 
-  const [totRes, pendRes, pagRes, mesRes] = await Promise.all([
-    supabase.from('documentos').select('total', { count: 'exact' }).eq('tipo', 'factura_venta').neq('estado', 'cancelada'),
-    supabase.from('documentos').select('total').eq('tipo', 'factura_venta').eq('estado', 'pendiente'),
-    supabase.from('documentos').select('total').eq('tipo', 'factura_venta').eq('estado', 'pagada'),
-    supabase.from('documentos').select('total').eq('tipo', 'factura_venta').neq('estado', 'cancelada').gte('fecha', inicioMes),
-  ])
-
-  const sumar = (rows: { total: number }[] | null) =>
-    (rows ?? []).reduce((s, r) => s + (r.total ?? 0), 0)
-
-  return {
-    total: totRes.count ?? 0,
-    pendiente: sumar(pendRes.data as { total: number }[]),
-    pagada: sumar(pagRes.data as { total: number }[]),
-    este_mes: sumar(mesRes.data as { total: number }[]),
-  }
+  const { data, error } = await supabase.rpc('get_estadisticas_ventas', { p_inicio_mes: inicioMes })
+  if (error) throw error
+  return data
 }
 
 // ── Listado ───────────────────────────────────────────────────
@@ -254,6 +243,7 @@ export async function getFacturaById(id: string) {
     .select(`
       *,
       cliente:clientes(id, razon_social, numero_documento, tipo_documento, dv, email, telefono, direccion, ciudad),
+      empresa:empresas(id, nombre, nit, dv, razon_social, direccion, ciudad, departamento, telefono, email, regimen),
       forma_pago:formas_pago(id, descripcion, tipo),
       bodega:bodegas(id, nombre),
       colaborador:colaboradores(id, nombre),

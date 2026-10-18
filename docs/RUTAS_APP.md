@@ -4,7 +4,7 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 
 ## Total
 
-- Paginas: 112
+- Paginas: 114
 
 ## Lista completa
 
@@ -30,7 +30,7 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 - `/configuracion/facturacion-electronica/page.tsx`
   - Superficie informativa desactivada; aclara que ClovEnt no ofrece FE nativa y redirige a integracion externa / cumplimiento.
 - `/configuracion/importar/page.tsx`
-  - Centro de `Migración e Importación` para migración guiada, importación masiva y exportación de respaldo.
+  - Centro de migracion, importacion y exportacion con tarjetas y selector sincronizados para maestros, catalogo, inventario, saldos y compras historicas.
 - `/configuracion/perfil/page.tsx`
 - `/configuracion/regulacion/page.tsx`
   - Configuración regulatoria por empresa: documento soporte, UVT, exógena, privacidad y jobs de validación.
@@ -40,6 +40,7 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 - `/contabilidad/asientos/[id]/editar/page.tsx`
 - `/contabilidad/asientos/nuevo/page.tsx`
 - `/contabilidad/asientos/page.tsx`
+- `/contabilidad/centros-costo/page.tsx`
 - `/contabilidad/consecutivos/page.tsx`
 - `/contabilidad/cuentas-especiales/page.tsx`
 - `/contabilidad/cuentas/[id]/editar/page.tsx`
@@ -50,7 +51,7 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 - `/contabilidad/impuestos/page.tsx`
 - `/contabilidad/periodos/page.tsx`
   - Cierre mensual, reapertura controlada y bloqueo transversal por periodo contable.
-- `/documentacion/page.tsx`
+- `/contabilidad/retenciones/page.tsx`
 - `/gastos/[id]/page.tsx`
 - `/gastos/acreedores/page.tsx`
 - `/gastos/nuevo/page.tsx`
@@ -74,11 +75,13 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 - `/informes/sumas-saldos/page.tsx`
 - `/informes/ventas-por-medio-pago/page.tsx`
 - `/inventario/ajuste/page.tsx`
+- `/inventario/importar/page.tsx`
+  - Importacion de inventario inicial sobre productos existentes.
 - `/inventario/kardex/page.tsx`
 - `/inventario/traslados/nuevo/page.tsx`
 - `/inventario/traslados/page.tsx`
+- `/movil/page.tsx`
 - `/notificaciones/page.tsx`
-- `/page.tsx`
 - `/pos/page.tsx`
 - `/productos/[id]/page.tsx`
 - `/productos/catalogo/page.tsx`
@@ -91,6 +94,7 @@ Inventario de paginas detectadas en `src/app/(dashboard)`.
 - `/superadmin/empresas/[id]/page.tsx`
 - `/superadmin/empresas/page.tsx`
 - `/superadmin/page.tsx`
+- `/superadmin/planes/page.tsx`
 - `/superadmin/usuarios/page.tsx`
 - `/tesoreria/caja/page.tsx`
 - `/tesoreria/conciliacion/page.tsx`

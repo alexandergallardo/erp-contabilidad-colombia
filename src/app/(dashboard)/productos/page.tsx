@@ -30,6 +30,7 @@ export default async function ProductosPage({ searchParams }: PageProps) {
   ])
   const canManage = session ? puedeAcceder(session.rol, 'productos', 'manage') : false
   const canSetInitialStock = session ? puedeAcceder(session.rol, 'inventario', 'manage') : false
+  const canImportCatalog = session ? puedeAcceder(session.rol, 'configuracion', 'manage') : false
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,12 +43,16 @@ export default async function ProductosPage({ searchParams }: PageProps) {
           <p className="text-sm text-gray-500">Inventario, precios y variantes</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/configuracion/importar?entidad=productos" className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm text-orange-700 hover:bg-orange-100 transition-colors">
-            <Upload className="h-4 w-4" /> Migrar catálogo
-          </Link>
-          <Link href="/configuracion/importar?entidad=inventario-inicial" className="flex items-center gap-1.5 rounded-lg border border-lime-200 bg-lime-50 px-3 py-1.5 text-sm text-lime-700 hover:bg-lime-100 transition-colors">
-            <Upload className="h-4 w-4" /> Importar inventario
-          </Link>
+          {canImportCatalog && (
+            <Link href="/configuracion/importar?entidad=productos" className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm text-orange-700 hover:bg-orange-100 transition-colors">
+              <Upload className="h-4 w-4" /> Migrar catálogo
+            </Link>
+          )}
+          {canSetInitialStock && (
+            <Link href="/inventario/importar" className="flex items-center gap-1.5 rounded-lg border border-lime-200 bg-lime-50 px-3 py-1.5 text-sm text-lime-700 hover:bg-lime-100 transition-colors">
+              <Upload className="h-4 w-4" /> Importar inventario
+            </Link>
+          )}
           <a href="/api/export/inventario?format=csv" download className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
             <BarChart3 className="h-4 w-4" /> CSV
           </a>

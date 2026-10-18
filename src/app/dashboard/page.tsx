@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
+import { cache, Suspense } from 'react'
 import { getSession } from '@/lib/auth/session'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
@@ -18,44 +19,14 @@ import {
 
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-async function cargarDatos() {
-  try {
-    const [kpis, resumen, ultimasFacturas, ultimasCompras, alertasStock, alertasSinRotacion, facturasVencidas, topClientes] =
-      await Promise.all([
-        getKPIsDashboard(),
-        getResumenMensual(),
-        getUltimasFacturas(6),
-        getUltimasCompras(4),
-        getAlertasStock(),
-        getAlertasSinRotacion(10),
-        getFacturasVencidas(),
-        getTopClientes(),
-      ])
-    return { kpis, resumen, ultimasFacturas, ultimasCompras, alertasStock, alertasSinRotacion, facturasVencidas, topClientes }
-  } catch {
-    return null
-  }
-}
+const cargarKPIs = cache(getKPIsDashboard)
 
 export default async function DashboardPage() {
   const session = await getSession()
   if (session?.rol === 'superadmin') redirect('/superadmin')
 
-  const datos = await cargarDatos()
-  if (!datos) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-gray-400">Cargando datos...</p>
-      </div>
-    )
-  }
-
-  const { kpis, resumen, ultimasFacturas, ultimasCompras, alertasStock, alertasSinRotacion, facturasVencidas, topClientes } = datos
   const mesActual = new Date().getMonth()
-  const resumenFiltrado = resumen.filter((m) => m.mes <= mesActual + 1)
-  const maxVal = Math.max(...resumenFiltrado.flatMap((m) => [m.ventas, m.compras, m.gastos]), 1)
   const puedeVerSugeridos = session ? ['admin', 'contador'].includes(session.rol) : false
-  const totalAlertas = alertasStock.length + alertasSinRotacion.length + facturasVencidas.length
 
   return (
     <div className="flex max-w-[1400px] flex-col gap-5">
@@ -74,6 +45,30 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <Suspense fallback={<CargandoResumen />}>
+        <ResumenPrincipal />
+      </Suspense>
+      <Suspense fallback={<div aria-label="Cargando actividad" aria-busy="true" className="h-80 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />}>
+        <ActividadDashboard puedeVerSugeridos={puedeVerSugeridos} />
+      </Suspense>
+    </div>
+  )
+}
+
+function CargandoResumen() {
+  return (
+    <div aria-label="Cargando resumen" aria-busy="true" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className={`${i < 3 ? 'h-[134px]' : 'h-[78px]'} animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800`} />
+      ))}
+    </div>
+  )
+}
+
+async function ResumenPrincipal() {
+  const kpis = await cargarKPIs()
+  return (
+    <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { label: 'Facturado', value: formatCOP(kpis.facturado_anio), icon: TrendingUp, gradient: 'from-blue-500 to-blue-600', href: '/ventas/facturas' },
@@ -110,6 +105,21 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+    </>
+  )
+}
+
+async function ActividadDashboard({ puedeVerSugeridos }: { puedeVerSugeridos: boolean }) {
+  const [kpis, resumen, ultimasFacturas, ultimasCompras, alertasStock, alertasSinRotacion, facturasVencidas, topClientes] =
+    await Promise.all([
+      cargarKPIs(), getResumenMensual(), getUltimasFacturas(6), getUltimasCompras(4),
+      getAlertasStock(), getAlertasSinRotacion(10), getFacturasVencidas(), getTopClientes(),
+    ])
+  const resumenFiltrado = resumen.filter((m) => m.mes <= new Date().getMonth() + 1)
+  const maxVal = Math.max(...resumenFiltrado.flatMap((m) => [m.ventas, m.compras, m.gastos]), 1)
+  const totalAlertas = alertasStock.length + alertasSinRotacion.length + facturasVencidas.length
+  return (
+    <>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="rounded-xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
           <div className="mb-5 flex items-center justify-between">
@@ -269,6 +279,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

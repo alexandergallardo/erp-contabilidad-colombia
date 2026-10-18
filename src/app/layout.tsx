@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import '@/components/marketing/marketing.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://clovent.co'),
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/brand/clovent-icon.png', sizes: '180x180', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
     ],
@@ -31,9 +32,9 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/clovent-icon.svg',
-        width: 512,
-        height: 512,
+        url: '/brand/clovent-dark.webp',
+        width: 1800,
+        height: 600,
         alt: 'ClovEnt',
       },
     ],
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ClovEnt',
     description: 'ERP para ventas, compras, inventario y contabilidad.',
-    images: ['/clovent-icon.svg'],
+    images: ['/brand/clovent-dark.webp'],
   },
 }
 

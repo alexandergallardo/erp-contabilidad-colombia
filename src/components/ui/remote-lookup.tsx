@@ -15,6 +15,7 @@ type RemoteLookupProps<T extends LookupItem> = {
   emptyMessage: string
   onSelect: (item: T) => void
   onClear?: () => void
+  onInputValueChange?: (value: string) => void
   getOptionLabel: (item: T) => string
   getOptionDescription?: (item: T) => string | undefined
   renderOptionDescription?: (item: T) => ReactNode
@@ -38,6 +39,7 @@ export function RemoteLookup<T extends LookupItem>({
   emptyMessage,
   onSelect,
   onClear,
+  onInputValueChange,
   getOptionLabel,
   getOptionDescription,
   renderOptionDescription,
@@ -56,17 +58,24 @@ export function RemoteLookup<T extends LookupItem>({
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState(initialLabel ?? '')
   const [items, setItems] = useState<T[]>([])
+  const onInputValueChangeRef = useRef(onInputValueChange)
 
   const queryParamsKey = JSON.stringify(queryParams ?? {})
 
   useEffect(() => {
+    onInputValueChangeRef.current = onInputValueChange
+  }, [onInputValueChange])
+
+  useEffect(() => {
     if (!value) {
       setQuery('')
+      onInputValueChangeRef.current?.('')
       return
     }
 
     if (initialLabel) {
       setQuery(initialLabel)
+      onInputValueChangeRef.current?.(initialLabel)
     }
   }, [initialLabel, value])
 
@@ -147,20 +156,21 @@ export function RemoteLookup<T extends LookupItem>({
         onChange={(event) => {
           const nextValue = event.target.value
           setQuery(nextValue)
+          onInputValueChangeRef.current?.(nextValue)
           if (!nextValue.trim()) {
             onClear?.()
           }
           setOpen(true)
         }}
-        className={`h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 ${inputClassName ?? ''}`}
+        className={`h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-teal-400 ${inputClassName ?? ''}`}
       />
 
       {open && (
-        <div className={`absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg ${panelClassName ?? ''}`}>
+        <div className={`absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg shadow-slate-200/60 dark:border-gray-700 dark:bg-gray-950/98 dark:shadow-black/40 ${panelClassName ?? ''}`}>
           {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-500">Buscando...</div>
+            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">Buscando...</div>
           ) : items.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-500">
+            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
               {query.trim().length > 0 && query.trim().length < minChars
                 ? `Escribe al menos ${minChars} caracteres`
                 : emptyMessage}
@@ -172,17 +182,19 @@ export function RemoteLookup<T extends LookupItem>({
                   key={item.id}
                   type="button"
                   onClick={() => {
+                    const label = getOptionLabel(item)
                     onSelect(item)
-                    setQuery(getOptionLabel(item))
+                    setQuery(label)
+                    onInputValueChangeRef.current?.(label)
                     setOpen(false)
                   }}
-                  className={`flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-gray-50 ${item.id === value ? 'bg-blue-50' : ''} ${optionClassName ?? ''}`}
+                  className={`flex w-full flex-col px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 ${item.id === value ? 'bg-blue-50 dark:bg-teal-500/12' : ''} ${optionClassName ?? ''}`}
                 >
-                  <span className="font-medium text-gray-800">{getOptionLabel(item)}</span>
+                  <span className="font-medium text-gray-800 dark:text-gray-100">{getOptionLabel(item)}</span>
                   {renderOptionDescription ? (
-                    <span className="text-xs text-gray-500">{renderOptionDescription(item)}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{renderOptionDescription(item)}</span>
                   ) : getOptionDescription ? (
-                    <span className="text-xs text-gray-500">{getOptionDescription(item)}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{getOptionDescription(item)}</span>
                   ) : null}
                 </button>
               ))}

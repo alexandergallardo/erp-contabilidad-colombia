@@ -4,7 +4,7 @@ Inventario de endpoints detectados en `src/app/api`.
 
 ## Total
 
-- Endpoints: 134
+- Endpoints: 138
 
 ## Notas relevantes
 
@@ -18,6 +18,7 @@ Inventario de endpoints detectados en `src/app/api`.
 - `/api/documento-soporte/route.ts`: administra el estado y metadatos del documento soporte externo en compras.
 - `/api/jobs/*`: cola simple de validaciones operativas para soporte y exógena.
 - `/api/perfil/datos/export/route.ts` y `/api/perfil/consentimientos/route.ts`: capa mínima de privacidad para exportación de datos personales y registro de aceptación.
+- `/api/auth/mis-empresas/route.ts` y `/api/auth/cambiar-empresa/route.ts`: flujo multiempresa. La lista de empresas resuelve nombres por `empresa_id` con consulta directa a `empresas`, no por el contexto de la empresa activa.
 - `/api/export/libro-diario/route.ts`, `/api/export/libro-mayor/route.ts`, `/api/export/auxiliares/route.ts`, `/api/export/retenciones/route.ts`, `/api/export/faltantes-soporte/route.ts`, `/api/export/exogena/route.ts`: salida auditable de cumplimiento contable y documental.
 - `/api/import/cuentas-puc/route.ts`: importa o actualiza cuentas PUC por `codigo`, con soporte para `codigo_padre`.
 - `/api/import/asientos-contables/route.ts`: agrupa lineas por `referencia` y crea asientos manuales balanceados usando `codigo_cuenta`.
@@ -32,8 +33,11 @@ Inventario de endpoints detectados en `src/app/api`.
 - `/api/adjuntos/route.ts`
 - `/api/auditoria/route.ts`
 - `/api/busqueda/route.ts`
+- `/api/auth/cambiar-empresa/route.ts`
 - `/api/auth/cambiar-password/route.ts`
 - `/api/auth/login/route.ts`
+- `/api/auth/mis-empresas/route.ts`
+- `/api/auth/register/route.ts`
 - `/api/clientes/[id]/route.ts`
 - `/api/clientes/grupos/[id]/route.ts`
 - `/api/clientes/grupos/route.ts`
@@ -54,6 +58,8 @@ Inventario de endpoints detectados en `src/app/api`.
 - `/api/contabilidad/asientos/[id]/revertir/route.ts`
 - `/api/contabilidad/asientos/[id]/route.ts`
 - `/api/contabilidad/asientos/route.ts`
+- `/api/contabilidad/centros-costo/[id]/route.ts`
+- `/api/contabilidad/centros-costo/route.ts`
 - `/api/contabilidad/consecutivos/[id]/route.ts`
 - `/api/contabilidad/consecutivos/route.ts`
 - `/api/contabilidad/cuentas-especiales/route.ts`
@@ -130,6 +136,7 @@ Nota: todas las rutas `/api/export/*` aceptan `format=csv|xlsx`; si no se envía
 - `/api/superadmin/empresas/[id]/route.ts`
 - `/api/superadmin/empresas/[id]/usuarios/route.ts`
 - `/api/superadmin/empresas/route.ts`
+- `/api/superadmin/usuario-empresas/route.ts`
 - `/api/superadmin/usuarios/[id]/route.ts`
 - `/api/tesoreria/cajas/route.ts`
 - `/api/tesoreria/conciliaciones/route.ts`

@@ -166,9 +166,9 @@ export function Sidebar({
     .filter((section) => section.items.length > 0)
 
   return (
-    <aside className="flex h-screen w-[272px] shrink-0 flex-col border-r border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(246,250,255,0.94))] dark:border-gray-800 dark:bg-[linear-gradient(180deg,rgba(10,17,27,0.98),rgba(16,24,36,0.98))]">
+    <aside className="flex h-full w-[272px] shrink-0 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <div className="px-4 pb-3 pt-4">
-        <div className="clovent-panel rounded-[1.6rem] px-4 py-4">
+        <div className="rounded-lg border border-gray-200 px-4 py-4 dark:border-gray-800">
           {tieneMultiEmpresa ? (
             <button
               type="button"

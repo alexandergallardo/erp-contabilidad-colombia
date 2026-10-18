@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { FormRecibo } from './FormRecibo'
 import { formatCOP, formatFecha, cardCls } from '@/utils/cn'
-import Link from 'next/link'
-import { FileText, User, CreditCard, Warehouse, CheckCircle, Printer, MessageCircle } from 'lucide-react'
+import { Building2, FileText, User, CreditCard, Warehouse, CheckCircle, Printer, MessageCircle } from 'lucide-react'
 import { EnviarEmailButton } from '@/components/shared/EnviarEmailButton'
 import { DuplicarButton } from '@/components/shared/DuplicarButton'
 import { calcularFechaPagoSistecredito, isSistecreditoFormaPago } from '@/lib/utils/formas-pago'
+import { buildFacturaPrintHref, type FacturaPrintFormat } from '@/lib/print/factura'
 
 interface FormaPago { id: string; descripcion: string }
 
@@ -37,6 +37,18 @@ interface Factura {
   dian_estado?: string | null
   cufe?: string | null
   qr_url?: string | null
+  empresa?: {
+    nombre?: string | null
+    nit?: string | null
+    dv?: string | null
+    razon_social?: string | null
+    direccion?: string | null
+    ciudad?: string | null
+    departamento?: string | null
+    telefono?: string | null
+    email?: string | null
+    regimen?: string | null
+  } | null
   cliente?: { razon_social: string; numero_documento?: string; tipo_documento?: string; email?: string; telefono?: string } | null
   forma_pago?: { descripcion: string; tipo: string } | null
   bodega?: { nombre: string } | null
@@ -57,12 +69,27 @@ interface Props {
 export function DetalleFactura({ factura, formasPago }: Props) {
   const router = useRouter()
   const [modalRecibo, setModalRecibo] = useState(false)
+  const [modalImpresion, setModalImpresion] = useState(false)
 
   const totalPagado = (factura.recibos ?? []).reduce((s, r) => s + r.valor, 0)
   const saldo       = factura.total - totalPagado
   const puedePagar  = factura.estado === 'pendiente' && saldo > 0.01
   const esSistecredito = isSistecreditoFormaPago(factura.forma_pago)
   const fechaCobroEsperada = esSistecredito ? calcularFechaPagoSistecredito(factura.fecha) : null
+  const direccionEmpresa = [
+    factura.empresa?.direccion,
+    factura.empresa?.ciudad,
+    factura.empresa?.departamento,
+  ].filter(Boolean).join(' · ')
+
+  const abrirImpresion = (formato: FacturaPrintFormat) => {
+    const href = buildFacturaPrintHref(factura.id, formato)
+    setModalImpresion(false)
+    const popup = window.open(href, '_blank', 'noopener,noreferrer')
+    if (!popup) {
+      router.push(href)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -110,11 +137,9 @@ export function DetalleFactura({ factura, formasPago }: Props) {
             </a>
           )}
           <DuplicarButton documentoId={factura.id} tipo="factura_venta" />
-          <Link href={`/print/factura/${factura.id}`} target="_blank">
-            <Button size="sm" variant="outline">
-              <Printer className="h-4 w-4 mr-1" /> Imprimir
-            </Button>
-          </Link>
+          <Button size="sm" variant="outline" onClick={() => setModalImpresion(true)}>
+            <Printer className="h-4 w-4 mr-1" /> Imprimir
+          </Button>
         </div>
       </div>
 
@@ -136,6 +161,25 @@ export function DetalleFactura({ factura, formasPago }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Info cliente + factura */}
         <div className="lg:col-span-1 flex flex-col gap-4">
+          <div className={`${cardCls} p-4`}>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-blue-500" /> Empresa
+            </h3>
+            <dl className="flex flex-col gap-1.5 text-sm">
+              <dd className="font-medium text-gray-900">{factura.empresa?.nombre ?? '—'}</dd>
+              {factura.empresa?.razon_social && factura.empresa.razon_social !== factura.empresa.nombre && (
+                <dd className="text-gray-500">{factura.empresa.razon_social}</dd>
+              )}
+              {(factura.empresa?.nit || factura.empresa?.dv) && (
+                <dd className="text-gray-500">
+                  NIT {factura.empresa?.nit ?? '—'}{factura.empresa?.dv ? `-${factura.empresa.dv}` : ''}
+                </dd>
+              )}
+              {direccionEmpresa && <dd className="text-gray-500">{direccionEmpresa}</dd>}
+              {factura.empresa?.telefono && <dd className="text-gray-500">{factura.empresa.telefono}</dd>}
+              {factura.empresa?.email && <dd className="text-gray-500">{factura.empresa.email}</dd>}
+            </dl>
+          </div>
           <div className={`${cardCls} p-4`}>
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-blue-500" /> Cliente
@@ -244,6 +288,26 @@ export function DetalleFactura({ factura, formasPago }: Props) {
           onDone={() => { setModalRecibo(false); router.refresh() }}
           onCancel={() => setModalRecibo(false)}
         />
+      </Modal>
+
+      <Modal
+        open={modalImpresion}
+        onClose={() => setModalImpresion(false)}
+        titulo="Selecciona formato de impresion"
+        descripcion="Puedes imprimir en hoja normal o en ticket térmico."
+        size="sm"
+      >
+        <div className="flex flex-col gap-3">
+          <Button variant="outline" onClick={() => abrirImpresion('normal')} className="justify-start">
+            <Printer className="h-4 w-4" /> Normal
+          </Button>
+          <Button variant="outline" onClick={() => abrirImpresion('termica-80')} className="justify-start">
+            <Printer className="h-4 w-4" /> Térmica 80 mm
+          </Button>
+          <Button variant="outline" onClick={() => abrirImpresion('termica-58')} className="justify-start">
+            <Printer className="h-4 w-4" /> Térmica 58 mm
+          </Button>
+        </div>
       </Modal>
     </div>
   )

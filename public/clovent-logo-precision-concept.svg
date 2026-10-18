@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title>ClovEnt Trébol de Precisión</title>
+  <desc>Concepto visual del logo de ClovEnt con un trébol más preciso, premium y tecnológico sobre fondo limpio.</desc>
+  <defs>
+    <linearGradient id="symbolGradient" x1="300" y1="280" x2="560" y2="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#0E9F8A"/>
+    </linearGradient>
+    <linearGradient id="symbolHighlight" x1="320" y1="260" x2="500" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="tileShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#16322F" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="#F6F4EE"/>
+
+  <g transform="translate(270 310)">
+    <g filter="url(#tileShadow)">
+      <rect x="0" y="0" width="280" height="280" rx="72" fill="url(#symbolGradient)"/>
+    </g>
+    <rect x="1.5" y="1.5" width="277" height="277" rx="70.5" fill="none" stroke="#54B7A9" stroke-opacity="0.36" stroke-width="3"/>
+    <path d="M26 48 C 72 20, 136 12, 196 30 C 230 40, 254 58, 272 82 L 272 0 L 0 0 L 0 106 C 10 84, 18 63, 26 48 Z" fill="url(#symbolHighlight)"/>
+
+    <g transform="translate(140 136)">
+      <g fill="#FFFFFF">
+        <path d="M0 -38 C 17 -51 38 -46 40 -22 C 42 1 27 18 0 36 C -27 18 -42 1 -40 -22 C -38 -46 -17 -51 0 -38 Z" transform="translate(-34 -30) rotate(-34)"/>
+        <path d="M0 -38 C 17 -51 38 -46 40 -22 C 42 1 27 18 0 36 C -27 18 -42 1 -40 -22 C -38 -46 -17 -51 0 -38 Z" transform="translate(34 -30) rotate(34)"/>
+        <path d="M0 -38 C 17 -51 38 -46 40 -22 C 42 1 27 18 0 36 C -27 18 -42 1 -40 -22 C -38 -46 -17 -51 0 -38 Z" transform="translate(-30 32) rotate(-146)"/>
+        <path d="M0 -38 C 17 -51 38 -46 40 -22 C 42 1 27 18 0 36 C -27 18 -42 1 -40 -22 C -38 -46 -17 -51 0 -38 Z" transform="translate(30 32) rotate(146)"/>
+      </g>
+      <g stroke="#DFF7EF" stroke-width="4" stroke-linecap="round" opacity="0.95" fill="none">
+        <path d="M0 0 L -22 -16"/>
+        <path d="M0 0 L 22 -16"/>
+        <path d="M0 0 L -20 20"/>
+        <path d="M0 0 L 20 20"/>
+      </g>
+      <path d="M-6 18 C -15 34 -23 49 -35 68" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <circle cx="0" cy="0" r="9" fill="#DFF7EF"/>
+    </g>
+
+    <g transform="translate(344 147)">
+      <text x="0" y="0" font-family="'Avenir Next', 'Helvetica Neue', Arial, sans-serif" font-size="132" dominant-baseline="middle" fill="#16322F" letter-spacing="-4">
+        <tspan font-weight="600">Clov</tspan><tspan fill="#0F766E" font-weight="500">Ent</tspan>
+      </text>
+    </g>
+  </g>
+</svg>

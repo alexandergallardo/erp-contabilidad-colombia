@@ -69,6 +69,12 @@ function formatProductoLabel(producto: { codigo?: string; descripcion?: string }
   return [producto.codigo, producto.descripcion].filter(Boolean).join(' · ')
 }
 
+function formatImpuestoShortLabel(impuesto: Impuesto) {
+  return impuesto.codigo?.trim()
+    ? `${impuesto.porcentaje}% ${impuesto.codigo}`
+    : `${impuesto.porcentaje}%`
+}
+
 export function RemotePurchaseDocumentForm({
   endpoint,
   successPath,
@@ -203,6 +209,9 @@ export function RemotePurchaseDocumentForm({
   }
 
   const inputClass = `h-9 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 ${themeStyles.ring}`
+  const noSpinnerCls = '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+  const compactNumberClass = `h-8 w-full rounded border border-gray-300 px-2 text-right text-sm focus:outline-none focus:ring-1 ${themeStyles.ring} ${noSpinnerCls}`
+  const compactSelectClass = `h-8 w-full appearance-none rounded border border-gray-300 bg-white px-2 text-sm focus:outline-none focus:ring-1 ${themeStyles.ring}`
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -283,16 +292,16 @@ export function RemotePurchaseDocumentForm({
         {lineas.length === 0 ? (
           <p className="py-8 text-center text-sm text-gray-400">No hay productos. Haz clic en &quot;Agregar linea&quot;.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto md:overflow-visible">
+            <table className="min-w-[46rem] table-fixed text-sm md:min-w-full">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="pb-2 text-left font-medium text-gray-600">Producto</th>
-                  <th className="w-20 pb-2 text-right font-medium text-gray-600">Cant.</th>
-                  <th className="w-28 pb-2 text-right font-medium text-gray-600">P. Costo</th>
-                  <th className="w-20 pb-2 text-right font-medium text-gray-600">Dcto %</th>
-                  <th className="w-28 pb-2 text-left font-medium text-gray-600">IVA</th>
-                  <th className="w-28 pb-2 text-right font-medium text-gray-600">Total</th>
+                  <th className="w-[4.5rem] pb-2 text-right font-medium text-gray-600">Cant.</th>
+                  <th className="w-[6.5rem] pb-2 text-right font-medium text-gray-600">P. Costo</th>
+                  <th className="w-[5rem] pb-2 text-right font-medium text-gray-600">Dcto %</th>
+                  <th className="w-[5.5rem] pb-2 text-left font-medium text-gray-600">IVA</th>
+                  <th className="w-[6.5rem] pb-2 text-right font-medium text-gray-600">Total</th>
                   <th className="w-8" />
                 </tr>
               </thead>
@@ -301,7 +310,7 @@ export function RemotePurchaseDocumentForm({
                   const calc = calcLinea(linea)
                   return (
                     <tr key={idx}>
-                      <td className="py-2 pr-2 align-top">
+                      <td className="py-2 pr-1 align-top md:pr-2">
                         <RemoteLookup<ProductoOption>
                           endpoint="/api/productos"
                           responseKey="productos"
@@ -311,6 +320,9 @@ export function RemotePurchaseDocumentForm({
                           emptyMessage="Sin productos para mostrar"
                           queryParams={{ activo: true }}
                           minChars={1}
+                          panelClassName="min-w-[20rem] max-w-[calc(100vw-2rem)] md:min-w-[30rem] md:max-w-[36rem] lg:min-w-[34rem]"
+                          resultsClassName="max-h-80 md:max-h-[24rem]"
+                          optionClassName="py-2"
                           onSelect={(producto) => handleProductoSelect(idx, producto)}
                           onClear={() => clearProducto(idx)}
                           getOptionLabel={(producto) => formatProductoLabel(producto)}
@@ -324,7 +336,7 @@ export function RemotePurchaseDocumentForm({
                           step="0.001"
                           value={linea.cantidad}
                           onChange={(event) => updateLinea(idx, 'cantidad', parseFloat(event.target.value) || 0)}
-                          className={`h-8 w-full rounded border border-gray-300 px-2 text-right text-sm focus:outline-none focus:ring-1 ${themeStyles.ring}`}
+                          className={compactNumberClass}
                         />
                       </td>
                       <td className="px-1 py-2">
@@ -334,7 +346,7 @@ export function RemotePurchaseDocumentForm({
                           step="0.01"
                           value={linea.precio_unitario}
                           onChange={(event) => updateLinea(idx, 'precio_unitario', parseFloat(event.target.value) || 0)}
-                          className={`h-8 w-full rounded border border-gray-300 px-2 text-right text-sm focus:outline-none focus:ring-1 ${themeStyles.ring}`}
+                          className={compactNumberClass}
                         />
                       </td>
                       <td className="px-1 py-2">
@@ -345,24 +357,25 @@ export function RemotePurchaseDocumentForm({
                           step="0.01"
                           value={linea.descuento_porcentaje}
                           onChange={(event) => updateLinea(idx, 'descuento_porcentaje', parseFloat(event.target.value) || 0)}
-                          className={`h-8 w-full rounded border border-gray-300 px-2 text-right text-sm focus:outline-none focus:ring-1 ${themeStyles.ring}`}
+                          className={compactNumberClass}
                         />
                       </td>
                       <td className="px-1 py-2">
                         <select
                           value={linea.impuesto_id}
                           onChange={(event) => updateLinea(idx, 'impuesto_id', event.target.value)}
-                          className={`h-8 w-full rounded border border-gray-300 bg-white px-2 text-sm focus:outline-none focus:ring-1 ${themeStyles.ring}`}
+                          title={impuestos.find((impuesto) => impuesto.id === linea.impuesto_id)?.descripcion ?? 'Sin IVA'}
+                          className={compactSelectClass}
                         >
                           <option value="">Sin IVA</option>
                           {impuestos.map((impuesto) => (
                             <option key={impuesto.id} value={impuesto.id}>
-                              {impuesto.descripcion ?? impuesto.codigo ?? 'Impuesto'} {impuesto.porcentaje}%
+                              {formatImpuestoShortLabel(impuesto)}
                             </option>
                           ))}
                         </select>
                       </td>
-                      <td className="py-2 pr-2 text-right font-mono text-gray-900">{formatCOP(calc.total)}</td>
+                      <td className="py-2 pr-2 text-right font-mono text-gray-900 whitespace-nowrap">{formatCOP(calc.total)}</td>
                       <td className="py-2">
                         <button
                           type="button"

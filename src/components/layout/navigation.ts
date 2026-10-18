@@ -121,6 +121,7 @@ const NAVIGATION_ITEMS: readonly NavigationItem[] = [
     module: 'inventario',
     section: 'operacion',
     children: [
+      { label: 'Importar inventario', href: '/inventario/importar' },
       { label: 'Kardex', href: '/inventario/kardex' },
       { label: 'Traslados', href: '/inventario/traslados' },
       { label: 'Ajuste inventario', href: '/inventario/ajuste' },

@@ -1,0 +1,16 @@
+# Local environment files must never be uploaded with Vercel deployments.
+.env
+.env.*
+.env*.local
+
+# Local build, tooling and cache artifacts.
+.next
+node_modules
+.playwright-cli
+output
+tmp
+coverage
+eslint-report.json
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store

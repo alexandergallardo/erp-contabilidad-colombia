@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
     "@napi-rs/canvas-linux-x64-musl",
   ],
   outputFileTracingIncludes: {
-    "/*": [
+    "/api/import/factura-electronica/parse": [
       "./node_modules/pdfjs-dist/**/*",
       "./node_modules/@napi-rs/canvas/**/*",
       "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",

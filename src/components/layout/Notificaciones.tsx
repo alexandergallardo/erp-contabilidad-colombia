@@ -72,7 +72,7 @@ export function Notificaciones() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900/95 overflow-hidden">
+          <div className="fixed left-3 right-3 top-16 z-20 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900/95 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                 Notificaciones {alertas.length > 0 && <span className="ml-1 rounded-full bg-red-100 text-red-700 px-1.5 py-0.5 text-xs dark:bg-red-900/30 dark:text-red-300">{alertas.length}</span>}

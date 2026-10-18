@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getEjercicioActivo, getEmpresaId } from '@/lib/db/maestros'
-import { getSession } from '@/lib/auth/session'
+import { getSession, puedeAcceder } from '@/lib/auth/session'
 import {
   buildFacturaImportMatches,
   parseFacturaElectronica,
@@ -55,6 +55,9 @@ export async function POST(req: NextRequest) {
     const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    if (!puedeAcceder(session.rol, 'compras', 'manage')) {
+      return NextResponse.json({ error: 'Sin permisos para este recurso' }, { status: 403 })
     }
 
     const formData = await req.formData()

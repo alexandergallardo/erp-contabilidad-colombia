@@ -30,6 +30,8 @@ export function getErrorStatus(e: unknown, fallback = 500): number {
     if (typeof status === 'number' && Number.isFinite(status)) return status
     const code = String((e as { code?: unknown }).code ?? '')
     if (code === '23505') return 409
+    if (code === '42501') return 403
+    if (code === '22023' || code === '22P02') return 400
     if (code === 'PGRST116') return 404
   }
   return fallback

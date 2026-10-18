@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { LogOut, ChevronDown, UserCircle, Settings, Building2 } from 'lucide-react'
+import { LogOut, ChevronDown, UserCircle, Settings, Building2, LockKeyhole } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { BusquedaGlobal } from '@/components/busqueda/BusquedaGlobal'
 import { Notificaciones } from '@/components/layout/Notificaciones'
@@ -10,6 +10,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { canAccessModule, getRoleLabel, type AppRole } from '@/lib/auth/permissions'
 import { BrandMark } from '@/components/brand/BrandMark'
+import { BrandLogo } from '@/components/brand/BrandLogo'
+import { formatLongDateInAppTimeZone } from '@/lib/utils/dates'
 
 interface HeaderProps {
   titulo: string
@@ -30,9 +32,7 @@ export function Header({ titulo, userName, userEmail, userRol, tieneMultiEmpresa
     router.refresh()
   }
 
-  const hoy = new Intl.DateTimeFormat('es-CO', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  }).format(new Date())
+  const hoy = formatLongDateInAppTimeZone(new Date())
 
   const initials = userName
     ? userName.split(' ').map((p: string) => p[0]).slice(0, 2).join('').toUpperCase()
@@ -45,22 +45,25 @@ export function Header({ titulo, userName, userEmail, userRol, tieneMultiEmpresa
       : null
 
   return (
-    <header className="relative z-10 flex h-[68px] shrink-0 items-center justify-between border-b border-white/60 bg-white/75 px-6 backdrop-blur-xl dark:border-gray-800/80 dark:bg-gray-950/82">
+    <header className="relative z-10 flex h-[68px] shrink-0 items-center justify-between border-b border-white/60 bg-white/75 px-3 backdrop-blur-xl dark:border-gray-800/80 dark:bg-gray-950/82 sm:px-6">
       <div className="min-w-0">
         <div className="flex items-center gap-3">
-          <BrandMark size="sm" />
+          <BrandMark size="sm" className="sm:hidden" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-[15px] font-semibold leading-tight text-gray-800 dark:text-gray-200">{titulo}</h1>
-              <span className="clovent-chip hidden md:inline-flex">clovent.co</span>
+              <h1 className="sr-only">{titulo}</h1>
+              <div className="hidden sm:block">
+                <span className="dark:hidden"><BrandLogo className="!w-[122px]" /></span>
+                <span className="hidden dark:block"><BrandLogo light className="!w-[122px]" /></span>
+              </div>
             </div>
-            <p className="truncate text-[11px] capitalize leading-tight text-gray-400 dark:text-gray-500">{hoy}</p>
+            <p className="hidden truncate text-[10px] capitalize leading-tight text-gray-500 dark:text-gray-400 sm:block">{hoy}</p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 rounded-2xl border border-white/70 bg-white/70 px-2 py-1 shadow-sm shadow-slate-200/40 backdrop-blur dark:border-gray-800 dark:bg-gray-900/70 dark:shadow-none">
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 rounded-2xl border border-white/70 bg-white/70 px-1.5 py-1 shadow-sm shadow-slate-200/40 backdrop-blur dark:border-gray-800 dark:bg-gray-900/70 dark:shadow-none sm:gap-1.5 sm:px-2">
           {puedeUsarERP && <BusquedaGlobal />}
           <ThemeToggle />
           {puedeUsarERP && <Notificaciones />}
@@ -102,6 +105,13 @@ export function Header({ titulo, userName, userEmail, userRol, tieneMultiEmpresa
                   className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-900 transition-colors"
                 >
                   <UserCircle className="h-4 w-4 opacity-50" /> Mi perfil
+                </Link>
+                <Link
+                  href="/cambiar-password"
+                  onClick={() => setMenu(false)}
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-900 transition-colors"
+                >
+                  <LockKeyhole className="h-4 w-4 opacity-50" /> Cambiar contraseña
                 </Link>
                 {usersHref && (
                   <Link

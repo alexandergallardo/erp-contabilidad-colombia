@@ -4,18 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { RemoteLookup } from '@/components/ui/remote-lookup'
+import { ClienteLookupField } from '@/components/clientes/ClienteLookupField'
+import { type ClienteLookupOption, formatClienteLookupLabel } from '@/components/clientes/ClienteQuickCreateButton'
 import { formatCOP, cardCls, todayLocalISODate } from '@/utils/cn'
 import type { Bodega, Impuesto } from '@/types'
 import { AlertCircle, Plus, Trash2 } from 'lucide-react'
 
 type Theme = 'green' | 'purple' | 'cyan'
-
-interface ClienteOption {
-  id: string
-  razon_social: string
-  numero_documento?: string | null
-  email?: string | null
-}
 
 interface ProductoOption {
   id: string
@@ -73,11 +68,6 @@ function calcLinea(linea: Linea) {
   const base = subtotal - descuento
   const iva = base * (linea.iva_pct / 100)
   return { subtotal, descuento, iva, total: base + iva }
-}
-
-function formatClienteLabel(cliente: ClienteOption) {
-  if (!cliente.numero_documento) return cliente.razon_social
-  return `${cliente.razon_social} (${cliente.numero_documento})`
 }
 
 function formatProductoLabel(producto: { codigo?: string; descripcion?: string }) {
@@ -209,29 +199,15 @@ export function RemoteSalesDocumentForm({
       <div className={`${cardCls} p-5`}>
         <h3 className="mb-4 text-sm font-semibold text-gray-700">Informacion general</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex flex-col gap-1 sm:col-span-2">
-            <label className="text-sm font-medium text-gray-700">Cliente *</label>
-            <RemoteLookup<ClienteOption>
-              endpoint="/api/clientes"
-              responseKey="clientes"
-              value={clienteId}
-              initialLabel={clienteLabel}
-              placeholder="Buscar por nombre, NIT o correo"
-              emptyMessage="Sin clientes para mostrar"
-              queryParams={{ activo: true }}
-              minChars={1}
-              onSelect={(cliente) => {
-                setClienteId(cliente.id)
-                setClienteLabel(formatClienteLabel(cliente))
-              }}
-              onClear={() => {
-                setClienteId('')
-                setClienteLabel('')
-              }}
-              getOptionLabel={(cliente) => formatClienteLabel(cliente)}
-              getOptionDescription={(cliente) => cliente.email ?? undefined}
-            />
-          </div>
+          <ClienteLookupField
+            value={clienteId}
+            initialLabel={clienteLabel}
+            className="sm:col-span-2"
+            onChange={(cliente: ClienteLookupOption | null) => {
+              setClienteId(cliente?.id ?? '')
+              setClienteLabel(cliente ? formatClienteLookupLabel(cliente) : '')
+            }}
+          />
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Bodega *</label>
@@ -296,7 +272,7 @@ export function RemoteSalesDocumentForm({
                     <tr key={idx}>
                       <td className="py-2 pr-2 align-top">
                         <RemoteLookup<ProductoOption>
-                          endpoint="/api/productos"
+                          endpoint="/api/ventas/productos-selector"
                           responseKey="productos"
                           value={linea.producto_id}
                           initialLabel={linea.producto_id ? formatProductoLabel({ codigo: linea.producto_codigo, descripcion: linea.descripcion }) : ''}

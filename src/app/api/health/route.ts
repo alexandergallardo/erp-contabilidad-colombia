@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { hasSupabaseServiceEnv } from '@/lib/supabase/config'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   const startedAt = Date.now()
 
@@ -9,6 +12,7 @@ export async function GET() {
     env: hasSupabaseServiceEnv(),
     db: false,
     latency_ms: 0,
+    timestamp: new Date().toISOString(),
   }
 
   try {
@@ -17,7 +21,14 @@ export async function GET() {
     if (error) throw error
     checks.db = true
     checks.latency_ms = Date.now() - startedAt
-    return NextResponse.json({ ok: true, checks })
+    return NextResponse.json(
+      { ok: true, checks },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    )
   } catch (e: unknown) {
     checks.latency_ms = Date.now() - startedAt
     return NextResponse.json(
@@ -26,7 +37,12 @@ export async function GET() {
         checks,
         error: e instanceof Error ? e.message : 'Healthcheck failed',
       },
-      { status: 503 }
+      {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
     )
   }
 }

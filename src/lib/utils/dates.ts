@@ -1,5 +1,15 @@
 export const APP_TIME_ZONE = 'America/Bogota'
 
+export function formatLongDateInAppTimeZone(date: Date) {
+  return new Intl.DateTimeFormat('es-CO', {
+    timeZone: APP_TIME_ZONE,
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
+
 function pad2(value: number) {
   return String(value).padStart(2, '0')
 }

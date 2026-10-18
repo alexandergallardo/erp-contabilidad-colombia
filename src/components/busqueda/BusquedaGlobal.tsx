@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Users, Package, X, ArrowRight, FileText, Building2 } from 'lucide-react'
 
@@ -33,21 +33,43 @@ export function BusquedaGlobal() {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
-  const buscar = useCallback(async (q: string) => {
-    if (q.trim().length < 2) { setResults([]); return }
-    setLoading(true)
-    const body = await fetch(`/api/busqueda?q=${encodeURIComponent(q)}`)
-      .then((response) => response.json())
-      .catch(() => ({ items: [] }))
-    setResults(body.items ?? [])
-    setSelected(0)
-    setLoading(false)
-  }, [])
-
   useEffect(() => {
-    const t = setTimeout(() => buscar(query), 300)
-    return () => clearTimeout(t)
-  }, [query, buscar])
+    if (!open) return
+    const controller = new AbortController()
+    const term = query.trim()
+    const timer = setTimeout(async () => {
+      if (term.length < 2) {
+        setResults([])
+        setLoading(false)
+        return
+      }
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/busqueda?q=${encodeURIComponent(term)}`, { signal: controller.signal })
+        if (!response.ok) throw new Error('Search failed')
+        const body = await response.json()
+        if (!controller.signal.aborted) {
+          setResults(body.items ?? [])
+          setSelected(0)
+        }
+      } catch {
+        if (!controller.signal.aborted) setResults([])
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
+      }
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query, open])
+
+  function actualizarQuery(value: string) {
+    setQuery(value)
+    setResults([])
+    setSelected(0)
+    setLoading(value.trim().length >= 2)
+  }
 
   function navegar(href: string) {
     setOpen(false)
@@ -57,13 +79,20 @@ export function BusquedaGlobal() {
   }
 
   function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') setSelected(s => Math.min(s + 1, results.length - 1))
-    if (e.key === 'ArrowUp') setSelected(s => Math.max(s - 1, 0))
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelected(s => Math.max(0, Math.min(s + 1, results.length - 1)))
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelected(s => Math.max(s - 1, 0))
+    }
     if (e.key === 'Enter' && results[selected]) navegar(results[selected].href)
   }
 
   if (!open) return (
     <button
+      aria-label="Buscar"
       onClick={() => setOpen(true)}
       className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-900/80 dark:text-gray-300 dark:hover:bg-gray-800/80 transition-colors"
     >
@@ -86,13 +115,14 @@ export function BusquedaGlobal() {
           <input
             autoFocus
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => actualizarQuery(e.target.value)}
+            aria-label="Buscar clientes, productos, facturas, proveedores"
             onKeyDown={handleKey}
             placeholder="Buscar clientes, productos, facturas, proveedores..."
             className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-gray-100"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <button onClick={() => actualizarQuery('')} aria-label="Limpiar búsqueda" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -104,10 +134,10 @@ export function BusquedaGlobal() {
           {loading && (
             <p className="px-4 py-3 text-sm text-gray-400">Buscando...</p>
           )}
-          {!loading && query.length >= 2 && results.length === 0 && (
+          {!loading && query.trim().length >= 2 && results.length === 0 && (
             <p className="px-4 py-3 text-sm text-gray-400">Sin resultados para &quot;{query}&quot;</p>
           )}
-          {!loading && query.length < 2 && (
+          {!loading && query.trim().length < 2 && (
             <div className="flex flex-col gap-1 px-4 py-2">
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Ir a</p>
               {[
